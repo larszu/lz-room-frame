@@ -1,0 +1,53 @@
+{
+  "name": "lz-room-frame",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Multi-person framing for meeting rooms: any camera in, AI framing presets, tile layouts, out as window, NDI, virtual camera or stream; control API for Crestron and Q-SYS",
+  "type": "module",
+  "main": "electron/main.cjs",
+  "author": "Lars Zumpe",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "node scripts/prepare-assets.mjs && concurrently -k -n web,app \"vite\" \"wait-on tcp:4196 && cross-env LZRF_DEV=1 electron .\"",
+    "web": "node scripts/prepare-assets.mjs && vite",
+    "build": "node scripts/prepare-assets.mjs && tsc --noEmit && vite build",
+    "start": "electron .",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "build:helpers": "node scripts/build-helpers.mjs",
+    "dist:mac": "npm run build && node scripts/build-helpers.mjs && electron-builder --config electron-builder.cjs --mac --publish never",
+    "dist:win": "npm run build && node scripts/build-helpers.mjs && electron-builder --config electron-builder.cjs --win --publish never",
+    "dist:linux": "npm run build && node scripts/build-helpers.mjs && electron-builder --config electron-builder.cjs --linux --publish never"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "^1.1.1",
+    "atem-connection": "^3.10.3",
+    "ffmpeg-static": "^5.3.0",
+    "ws": "^8.22.0"
+  },
+  "devDependencies": {
+    "@fontsource-variable/public-sans": "^5.3.0",
+    "@types/node": "^26.6.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/ws": "^8.18.2",
+    "@vitejs/plugin-react": "^6.1.2",
+    "concurrently": "^10.0.5",
+    "cross-env": "^10.1.0",
+    "electron": "^45.0.0",
+    "electron-builder": "^26.15.3",
+    "lucide-react": "^1.61.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2",
+    "wait-on": "^9.0.1"
+  },
+  "allowScripts": {
+    "ffmpeg-static@5.3.0": true,
+    "electron-winstaller@5.4.0": true,
+    "@julusian/freetype2": false,
+    "fsevents": false
+  }
+}

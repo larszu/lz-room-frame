@@ -1,0 +1,164 @@
+-- LZ Room Frame – Q-SYS Designer plugin
+-- Controls LZ Room Frame over TCP (default port 4198): scenes, mode, camera off, hold,
+-- outputs, and speaker zones (wire automixer gate outputs or mic-active pins to the zone
+-- toggles). Feedback: connection, active scene, person count, speaker.
+-- Text protocol: one command per line, see the app under "Steuerung".
+
+PluginInfo = {
+  Name = "LZ Room Frame~LZ Room Frame",
+  Version = "0.1.0",
+  BuildVersion = "0.1.0.0",
+  Id = "de.zumpelars.lzroomframe.qsys",
+  Author = "Lars Zumpe",
+  Description = "Multi-person framing control (scenes, mode, speaker zones)",
+}
+
+local SCENES = 12
+local ZONES = 8
+local MODES = { "overview", "group", "people", "speaker", "presenter" }
+local MODE_LABEL = { overview = "Übersicht", group = "Gruppe", people = "Kacheln", speaker = "Sprecher", presenter = "Präsentator" }
+
+function GetColor(props) return { 29, 50, 79 } end
+function GetPrettyName(props) return "LZ Room Frame " .. PluginInfo.Version end
+
+function GetProperties() return {} end
+
+function GetControls(props)
+  local c = {
+    { Name = "IPAddress", ControlType = "Text", UserPin = true, PinStyle = "Input", Count = 1 },
+    { Name = "Port", ControlType = "Text", UserPin = true, PinStyle = "Input", Count = 1 },
+    { Name = "Connected", ControlType = "Indicator", IndicatorType = "Led", UserPin = true, PinStyle = "Output", Count = 1 },
+    { Name = "Status", ControlType = "Indicator", IndicatorType = "Status", UserPin = true, PinStyle = "Output", Count = 1 },
+    { Name = "Scene", ControlType = "Button", ButtonType = "Trigger", UserPin = true, PinStyle = "Input", Count = SCENES },
+    { Name = "SceneName", ControlType = "Indicator", IndicatorType = "Text", UserPin = true, PinStyle = "Output", Count = SCENES },
+    { Name = "SceneActive", ControlType = "Indicator", IndicatorType = "Led", UserPin = true, PinStyle = "Output", Count = SCENES },
+    { Name = "Mode", ControlType = "Button", ButtonType = "Trigger", UserPin = true, PinStyle = "Input", Count = #MODES },
+    { Name = "ModeActive", ControlType = "Indicator", IndicatorType = "Led", UserPin = true, PinStyle = "Output", Count = #MODES },
+    { Name = "Privacy", ControlType = "Button", ButtonType = "Toggle", UserPin = true, PinStyle = "Both", Count = 1 },
+    { Name = "Freeze", ControlType = "Button", ButtonType = "Toggle", UserPin = true, PinStyle = "Both", Count = 1 },
+    { Name = "OutputNDI", ControlType = "Button", ButtonType = "Toggle", UserPin = true, PinStyle = "Both", Count = 1 },
+    { Name = "OutputWindow", ControlType = "Button", ButtonType = "Toggle", UserPin = true, PinStyle = "Both", Count = 1 },
+    { Name = "SpeakerZone", ControlType = "Button", ButtonType = "Toggle", UserPin = true, PinStyle = "Input", Count = ZONES },
+    { Name = "Persons", ControlType = "Indicator", IndicatorType = "Text", UserPin = true, PinStyle = "Output", Count = 1 },
+    { Name = "Speaker", ControlType = "Indicator", IndicatorType = "Text", UserPin = true, PinStyle = "Output", Count = 1 },
+    { Name = "Command", ControlType = "Text", UserPin = true, PinStyle = "Input", Count = 1 },
+  }
+  return c
+end
+
+function GetControlLayout(props)
+  local layout, graphics = {}, {}
+  local function label(text, x, y, w) table.insert(graphics, { Type = "Text", Text = text, Position = { x, y }, Size = { w or 90, 18 }, FontSize = 11, HTextAlign = "Left" }) end
+  table.insert(graphics, { Type = "GroupBox", Text = "LZ Room Frame", Position = { 0, 0 }, Size = { 520, 470 }, Fill = { 246, 245, 240 }, StrokeWidth = 1, CornerRadius = 8, FontSize = 14 })
+  label("IP", 10, 28, 30); layout["IPAddress"] = { Position = { 40, 28 }, Size = { 130, 18 } }
+  label("Port", 180, 28, 30); layout["Port"] = { Position = { 210, 28 }, Size = { 50, 18 } }
+  layout["Connected"] = { Position = { 270, 28 }, Size = { 18, 18 } }
+  layout["Status"] = { Position = { 295, 28 }, Size = { 215, 18 } }
+  label("Szenen", 10, 56)
+  for i = 1, SCENES do
+    local col, row = (i - 1) % 4, math.floor((i - 1) / 4)
+    local x, y = 10 + col * 125, 76 + row * 46
+    layout["Scene " .. i] = { PrettyName = "Scenes~" .. i, Style = "Button", Position = { x, y }, Size = { 100, 22 }, Legend = tostring(i) }
+    layout["SceneActive " .. i] = { Position = { x + 102, y + 2 }, Size = { 16, 16 } }
+    layout["SceneName " .. i] = { Position = { x, y + 23 }, Size = { 118, 16 }, FontSize = 9 }
+  end
+  label("Modus", 10, 220)
+  for i, m in ipairs(MODES) do
+    layout["Mode " .. i] = { PrettyName = "Mode~" .. MODE_LABEL[m], Style = "Button", Position = { 10 + (i - 1) * 100, 240 }, Size = { 80, 22 }, Legend = MODE_LABEL[m] }
+    layout["ModeActive " .. i] = { Position = { 92 + (i - 1) * 100, 243 }, Size = { 16, 16 } }
+  end
+  label("Kamera aus", 10, 276); layout["Privacy"] = { Position = { 100, 276 }, Size = { 36, 18 } }
+  label("Bild halten", 150, 276); layout["Freeze"] = { Position = { 240, 276 }, Size = { 36, 18 } }
+  label("NDI", 290, 276, 40); layout["OutputNDI"] = { Position = { 330, 276 }, Size = { 36, 18 } }
+  label("Fenster", 380, 276, 60); layout["OutputWindow"] = { Position = { 440, 276 }, Size = { 36, 18 } }
+  label("Sprecherzonen", 10, 306)
+  for i = 1, ZONES do
+    layout["SpeakerZone " .. i] = { PrettyName = "Speaker Zones~Zone " .. i, Style = "Button", Position = { 10 + (i - 1) * 62, 326 }, Size = { 56, 22 }, Legend = "Zone " .. i }
+  end
+  label("Personen", 10, 362); layout["Persons"] = { Position = { 100, 362 }, Size = { 60, 18 } }
+  label("Sprecher", 180, 362); layout["Speaker"] = { Position = { 270, 362 }, Size = { 60, 18 } }
+  label("Befehl", 10, 392); layout["Command"] = { Position = { 100, 392 }, Size = { 410, 18 } }
+  table.insert(graphics, { Type = "Text", Text = "Befehl: z. B. 'shot close', 'style center', 'speed slow'", Position = { 100, 414 }, Size = { 410, 16 }, FontSize = 9, HTextAlign = "Left" })
+  return layout, graphics
+end
+
+if Controls then
+  local json = require("rapidjson")
+  local sock = TcpSocket.New()
+  sock.ReadTimeout = 0; sock.WriteTimeout = 0; sock.ReconnectTimeout = 5
+  local pollTimer = Timer.New()
+  local scenes = {}
+
+  local function send(line)
+    if sock.IsConnected then sock:Write(line .. "\r\n") end
+  end
+
+  local function setStatus(code, text) Controls.Status.Value = code; Controls.Status.String = text end
+
+  local function connect()
+    if sock.IsConnected then sock:Disconnect() end
+    local ip, port = Controls.IPAddress.String, tonumber(Controls.Port.String) or 4198
+    if ip == "" then setStatus(3, "IP-Adresse fehlt"); return end
+    setStatus(5, "verbinde …")
+    sock:Connect(ip, port)
+  end
+
+  local function applyStatus(s)
+    Controls.Persons.String = tostring(s.persons or 0)
+    Controls.Speaker.String = s.speaker and tostring(s.speaker) or "–"
+    Controls.Privacy.Boolean = s.privacy == true
+    Controls.Freeze.Boolean = s.frozen == true
+    if s.sinks then
+      Controls.OutputNDI.Boolean = s.sinks.ndi and s.sinks.ndi.on == true or false
+    end
+    for i = 1, SCENES do Controls.SceneActive[i].Boolean = scenes[i] ~= nil and scenes[i] == s.scene end
+    for i, m in ipairs(MODES) do Controls.ModeActive[i].Boolean = s.mode == m end
+  end
+
+  sock.EventHandler = function(s, evt, err)
+    if evt == TcpSocket.Events.Connected then
+      Controls.Connected.Boolean = true; setStatus(0, "verbunden")
+      send("subscribe on"); send("scenes"); send("status")
+      for i = 1, ZONES do if Controls.SpeakerZone[i].Boolean then send("zone " .. i .. " on") end end
+    elseif evt == TcpSocket.Events.Data then
+      local line = s:ReadLine(TcpSocket.EOL.CrLf)
+      while line do
+        if line:sub(1, 1) == "{" then
+          local ok, st = pcall(json.decode, line)
+          if ok and st then applyStatus(st) end
+        elseif line:match("^EVT") then
+          if line:match("^EVT scene") then send("status") end
+          local n = line:match("^EVT persons (%d+)")
+          if n then Controls.Persons.String = n end
+        else
+          local num, id, name = line:match("^(%d+) (%S+) (.+)$")
+          if num then
+            local i = tonumber(num)
+            if i <= SCENES then scenes[i] = id; Controls.SceneName[i].String = name end
+          elseif line:match("^ERR") then setStatus(1, line) end
+        end
+        line = s:ReadLine(TcpSocket.EOL.CrLf)
+      end
+    elseif evt == TcpSocket.Events.Closed or evt == TcpSocket.Events.Error or evt == TcpSocket.Events.Timeout then
+      Controls.Connected.Boolean = false; setStatus(2, "getrennt " .. (err or ""))
+    elseif evt == TcpSocket.Events.Reconnect then
+      setStatus(5, "verbinde neu …")
+    end
+  end
+
+  Controls.IPAddress.EventHandler = connect
+  Controls.Port.EventHandler = connect
+  for i = 1, SCENES do Controls.Scene[i].EventHandler = function() send("scene " .. (scenes[i] or i)) end end
+  for i, m in ipairs(MODES) do Controls.Mode[i].EventHandler = function() send("mode " .. m) end end
+  Controls.Privacy.EventHandler = function(c) send("privacy " .. (c.Boolean and "on" or "off")) end
+  Controls.Freeze.EventHandler = function(c) send("freeze " .. (c.Boolean and "on" or "off")) end
+  Controls.OutputNDI.EventHandler = function(c) send("output ndi " .. (c.Boolean and "on" or "off")) end
+  Controls.OutputWindow.EventHandler = function(c) send("output window " .. (c.Boolean and "on" or "off")) end
+  for i = 1, ZONES do Controls.SpeakerZone[i].EventHandler = function(c) send("zone " .. i .. " " .. (c.Boolean and "on" or "off")) end end
+  Controls.Command.EventHandler = function(c) if c.String ~= "" then send(c.String) end end
+
+  pollTimer.EventHandler = function() send("status") end
+  pollTimer:Start(2)
+  if Controls.Port.String == "" then Controls.Port.String = "4198" end
+  connect()
+end

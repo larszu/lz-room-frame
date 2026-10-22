@@ -1,0 +1,146 @@
+/* ============================================================
+   Lars Zumpe Medienproduktion · UI-Tokens (Stand Oktober 2026)
+   Palette aus Brand Guide 2.0 – unverändert. Formen, Tiefe und
+   Bewegung folgen modernen UI-Standards, nicht den Print-Regeln.
+   Logo und Tally-Punkt bleiben eckig (nie --radius anwenden).
+   ============================================================ */
+
+@layer reset, tokens, base, components, utilities;
+
+@layer tokens {
+  :root {
+    color-scheme: light dark;
+
+    /* Palette – nicht ändern */
+    --deep-navy: #132040;
+    --navy: #1D324F;
+    --off-white: #F6F5F0;
+    --eisblau: #E1ECEF;
+    --stahlblau: #8C9CB3;
+    --schiefer: #5C6B85;
+    --tally: #D6402E;
+
+    /* Neutrale Basis – Blau ist nur Akzent */
+    --neutral-0: #FAFAF8;  --neutral-1: #FFFFFF;  --neutral-2: #F1F1EE;
+    --ink-strong: #16181D; --ink: #2B2E35;        --ink-muted: #6A6E77;
+    --night-0: #1E1F23;    --night-1: #28292E;    --night-2: #33343A;   --night-3: #3B3C42;  /* Anthrazit, nicht zu dunkel */
+    --blau-hell: color-mix(in oklab, var(--stahlblau), var(--eisblau) 50%);  /* ≈ #B9C7D8, Akzent auf Dunkel */
+
+    /* Flächen (hell | dunkel) */
+    --surface-0: light-dark(var(--neutral-0), var(--night-0));
+    --surface-1: light-dark(var(--neutral-1), var(--night-1));
+    --surface-2: light-dark(var(--neutral-2), var(--night-2));
+    --surface-3: light-dark(var(--neutral-1), var(--night-3));
+    --scrim: color-mix(in oklab, #000 50%, transparent);
+    --glass: color-mix(in oklab, var(--surface-0) 82%, transparent);
+
+    /* Text – neutral */
+    --text-strong: light-dark(var(--ink-strong), var(--off-white));
+    --text: light-dark(var(--ink), #E4E4E1);
+    --text-muted: light-dark(var(--ink-muted), #A9ACB4);
+
+    /* Linien – sparsam, Abstand trennt zuerst */
+    --line: light-dark(rgb(22 24 29 / .08), rgb(246 245 240 / .08));
+    --line-strong: light-dark(rgb(22 24 29 / .18), rgb(246 245 240 / .18));
+
+    /* Akzent = Markenblau. Hauptaktion, Fortschritt, Auswahl, Links, Signet. ≤ 10 % der Fläche. */
+    --accent: light-dark(var(--navy), var(--blau-hell));
+    --accent-text: light-dark(var(--off-white), var(--deep-navy));
+    --accent-soft: color-mix(in oklab, var(--accent) 10%, transparent);
+
+    /* Logo – nur Kit-Farben, nie Akzent */
+    --logo: light-dark(var(--navy), var(--off-white));
+
+    /* Atmosphäre: Hintergrund-Schein, Weichschatten unter dem Hauptbutton */
+    --glow-1: light-dark(rgb(29 50 79 / .10), rgb(185 199 216 / .16));
+    --glow-2: rgb(200 137 43 / .10);
+
+    /* Signal: Claim-Punkt, LIVE/REC, Fokus, Erfolgs- und Fortschrittsmomente */
+    --signal: var(--tally);
+    --focus: var(--tally);
+
+    /* Status */
+    --ok: #2F7D5C;  --warn: #C8892B;  --error: #B04A3F;
+    --ok-soft: color-mix(in oklab, var(--ok) 14%, transparent);
+    --warn-soft: color-mix(in oklab, var(--warn) 14%, transparent);
+    --ok-text: light-dark(color-mix(in oklab, var(--ok), var(--ink-strong) 90%), color-mix(in oklab, var(--ok), var(--off-white) 55%));
+    --warn-text: light-dark(color-mix(in oklab, var(--warn), var(--ink-strong) 65%), color-mix(in oklab, var(--warn), var(--off-white) 80%));
+    --error-text: light-dark(var(--error), color-mix(in oklab, var(--error), var(--off-white) 50%));
+    --error-soft: color-mix(in oklab, var(--error) 14%, transparent);
+
+    /* Zustandsschicht */
+    --state: light-dark(var(--ink-strong), var(--off-white));
+    --state-hover: 6%;
+    --state-press: 10%;
+
+    /* Formen */
+    --radius-s: 6px;  --radius-m: 10px;  --radius-l: 20px;  --radius-xl: 24px;  --radius-full: 999px;
+
+    /* Tiefe – weich, neutral, nur zum Trennen */
+    --shadow-1: 0 1px 2px light-dark(rgb(22 24 29 / .06), rgb(0 0 0 / .3));
+    --shadow-2: 0 4px 16px light-dark(rgb(22 24 29 / .08), rgb(0 0 0 / .4));
+    --shadow-3: 0 16px 48px light-dark(rgb(22 24 29 / .14), rgb(0 0 0 / .55));
+
+    /* Typografie */
+    --font: 'Public Sans Variable', 'Public Sans', system-ui, 'Segoe UI', Roboto, Arial, sans-serif;
+    --fs-hero: clamp(2.5rem, 6vw + 1rem, 6rem);
+    --fs-title: clamp(1.5rem, 2vw + 1rem, 2rem);
+    --fs-section: clamp(1.125rem, .5vw + 1rem, 1.25rem);
+    --fs-body: 1rem;
+    --fs-ui: .9375rem;
+    --fs-meta: .8125rem;
+    --fs-overline: .75rem;
+
+    /* Raum (8er-Raster, 4er-Halbschritte) */
+    --space-1: 4px;  --space-2: 8px;  --space-3: 12px;  --space-4: 16px;
+    --space-5: 20px; --space-6: 24px; --space-8: 32px;  --space-12: 48px; --space-16: 64px;
+    --space-section: clamp(48px, 8vw, 128px);
+    --page-margin: clamp(16px, 4vw, 48px);
+    --page-max: 1200px;
+
+    /* Größen */
+    --control-h: 40px;      /* Desktop */
+    --row-h: 44px;
+    --touch: 44px;
+    --bar-h: 64px;          /* Bottom-Bar mobil */
+
+    /* Bewegung */
+    --ease: cubic-bezier(.2, .8, .2, 1);
+    --ease-spring: linear(0, .5 15%, .9 30%, 1.04 45%, 1.01 65%, 1);
+    --dur-1: 120ms;  --dur-2: 220ms;  --dur-3: 360ms;
+  }
+
+  [data-theme="dark"]  { color-scheme: dark; }
+  [data-theme="light"] { color-scheme: light; }
+
+  /* Dichte nur für Profi-Werkzeuge mit Maus */
+  @media (pointer: fine) {
+    [data-density="compact"] { --control-h: 32px; --row-h: 32px; --fs-ui: .875rem; }
+  }
+  @media (pointer: coarse) { :root { --control-h: 48px; --row-h: 52px; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root { --dur-2: 0ms; --dur-3: 120ms; --ease-spring: var(--ease); }
+  }
+}
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: none; text-size-adjust: none; interpolate-size: allow-keywords; }
+  body {
+    margin: 0; min-block-size: 100dvh; background: var(--surface-0); color: var(--text);
+    font: 400 var(--fs-body)/1.55 var(--font); font-synthesis: none;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 { color: var(--text-strong); text-wrap: balance; margin: 0; line-height: 1.2; }
+  p { text-wrap: pretty; max-inline-size: 68ch; }
+  img, video, svg { max-inline-size: 100%; block-size: auto; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  [id] { scroll-margin-top: 88px; }
+  ::selection { background: color-mix(in oklab, var(--accent) 22%, transparent); }
+  @view-transition { navigation: auto; }
+  body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background: radial-gradient(56rem 36rem at 8% -12%, var(--glow-1), transparent 62%),
+                radial-gradient(44rem 30rem at 105% 4%, var(--glow-2), transparent 60%); }
+  .logo, .tally-dot { border-radius: 0 !important; }  /* Marke bleibt eckig */
+}

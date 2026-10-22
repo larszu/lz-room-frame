@@ -1,0 +1,8 @@
+node_modules/
+dist/
+release/
+helpers/bin/
+public/mediapipe/
+public/models/*.tflite
+public/models/*.task
+.DS_Store

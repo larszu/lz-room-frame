@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LZ Room Frame · Fernbedienung</title>
+<style>
+  :root { color-scheme: light dark; --bg: light-dark(#FAFAF8, #1E1F23); --s1: light-dark(#fff, #28292E); --s2: light-dark(#F1F1EE, #33343A);
+    --text: light-dark(#2B2E35, #E4E4E1); --muted: light-dark(#6A6E77, #A9ACB4); --accent: light-dark(#1D324F, #B9C7D8); --on: light-dark(#F6F5F0, #132040);
+    --tally: #D6402E; --r: 20px; font-family: 'Public Sans', system-ui, 'Segoe UI', sans-serif; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); min-height: 100dvh; padding: max(16px, env(safe-area-inset-top)) 16px 24px; }
+  main { max-width: 1100px; margin: 0 auto; display: grid; gap: 16px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  h1 { font-size: 1.25rem; margin: 0; font-weight: 700; } h1 b { color: var(--tally); }
+  .meta { color: var(--muted); font-size: .875rem; font-variant-numeric: tabular-nums; }
+  .preview { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: var(--r); object-fit: contain; display: block; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  button { font: inherit; font-weight: 600; min-height: 64px; border: 0; border-radius: 14px; background: var(--s1); color: var(--text);
+    box-shadow: 0 1px 2px rgb(0 0 0 / .12); cursor: pointer; padding: 10px 14px; transition: transform .12s; }
+  button:active { transform: scale(.97); }
+  button[aria-pressed="true"] { background: var(--accent); color: var(--on); }
+  button.privacy[aria-pressed="true"] { background: var(--tally); color: #fff; }
+  section h2 { font-size: .8125rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 8px 0; font-weight: 600; }
+  .off { color: var(--tally); }
+</style>
+</head>
+<body>
+<main>
+  <header><h1>LZ Room Frame<b>.</b></h1><span class="meta" id="st">verbinde …</span></header>
+  <img class="preview" src="/preview.mjpg" alt="Ausgabebild">
+  <section><h2>Szenen</h2><div class="grid" id="scenes"></div></section>
+  <section><h2>Steuerung</h2><div class="grid">
+    <button data-cmd="freeze on" id="freeze">Bild halten</button>
+    <button class="privacy" id="privacy">Kamera aus</button>
+  </div></section>
+</main>
+<script>
+  let ws, status = {};
+  const $ = (id) => document.getElementById(id);
+  async function loadScenes() {
+    const list = await (await fetch('/api/scenes')).json();
+    $('scenes').replaceChildren(...list.map((s) => { const b = document.createElement('button'); b.textContent = s.name; b.dataset.id = s.id; b.onclick = () => send(`scene ${s.id}`); return b; }));
+  }
+  function send(c) { if (ws && ws.readyState === 1) ws.send(c); }
+  function render() {
+    for (const b of $('scenes').children) b.setAttribute('aria-pressed', String(b.dataset.id === status.scene));
+    $('privacy').setAttribute('aria-pressed', String(!!status.privacy));
+    $('freeze').setAttribute('aria-pressed', String(!!status.frozen));
+    $('st').textContent = `${status.persons ?? 0} Personen · ${status.sceneName || ''}`;
+  }
+  $('privacy').onclick = () => send(`privacy ${status.privacy ? 'off' : 'on'}`);
+  $('freeze').onclick = () => send(`freeze ${status.frozen ? 'off' : 'on'}`);
+  function connect() {
+    ws = new WebSocket(`ws://${location.host}/control`);
+    ws.onopen = () => { send('subscribe on'); send('status'); };
+    ws.onmessage = (m) => {
+      const t = String(m.data);
+      if (t.startsWith('{')) { status = JSON.parse(t); render(); }
+      else if (t.startsWith('EVT') || t.startsWith('OK')) send('status');
+    };
+    ws.onclose = () => { $('st').innerHTML = '<span class="off">getrennt</span>'; setTimeout(connect, 2000); };
+  }
+  loadScenes(); connect();
+</script>
+</body>
+</html>
