@@ -6,7 +6,7 @@
   "type": "module",
   "main": "electron/main.cjs",
   "author": "Lars Zumpe",
-  "license": "UNLICENSED",
+  "license": "SEE LICENSE IN LICENSE",
   "scripts": {
     "dev": "node scripts/prepare-assets.mjs && concurrently -k -n web,app \"vite\" \"wait-on tcp:4196 && cross-env LZRF_DEV=1 electron .\"",
     "web": "node scripts/prepare-assets.mjs && vite",

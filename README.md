@@ -1,10 +1,36 @@
-# LZ Room Frame
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/brand/lzm_hauptlogo_offwhite.svg" />
+    <img src="docs/brand/lzm_hauptlogo_navy.svg" alt="Lars Zumpe Medienproduktion" width="220" />
+  </picture>
+</p>
 
-Multi-person framing for meeting rooms, from any camera. Every person gets their own tile, like the "tile view" of AI room cameras. The picture goes out as a window, NDI, a stream or a virtual camera, and Crestron, Q-SYS or a browser control it.
+<h1 align="center">LZ Room Frame</h1>
 
-[Deutsch](README.de.md)
+<p align="center">
+  <b>Multi-person framing for meeting rooms – macOS, Windows and Linux.</b><br />
+  Any camera in, every person in their own tile, out to Zoom, Teams, NDI, a stream or an ATEM.
+</p>
 
-## Features
+<p align="center">
+  <a href="https://github.com/larszu/lz-room-frame/releases/latest">
+    <img src="https://img.shields.io/badge/Download-macOS%20%7C%20Windows%20%7C%20Linux-1D324F?style=for-the-badge&logo=github&logoColor=white" alt="Download LZ Room Frame for macOS, Windows and Linux" height="40" />
+  </a>
+</p>
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/layouts-dark.png" />
+    <img src="docs/screenshots/layouts.png" alt="LZ Room Frame – automatic grids that follow the number of people" width="860" />
+  </picture>
+</p>
+
+<p align="center"><a href="README.de.md">Deutsch</a></p>
+
+---
+
+## Why LZ Room Frame
+
 
 - **Any input, any resolution:** USB/UVC cameras, HDMI and SDI capture cards, IP and PTZ cameras over RTSP/SRT/RTMP, video files. The app asks for the most the device offers; output size is free (16:9, 9:16, square, 4K …).
 - **Framing like AI PTZ cameras:** modes *overview, group, tiles, speaker, presenter*; shot sizes from close-up to wide; headroom, group margin, dead band, speed, transition (smooth, fade, cut), hold time and a sharpness guard that never enlarges the camera picture beyond a set factor.
@@ -20,6 +46,12 @@ Multi-person framing for meeting rooms, from any camera. Every person gets their
 
 Detection runs locally in a worker (MediaPipe EfficientDet-Lite0 + BlazeFace, GPU with CPU fallback). No cloud is involved.
 
+## Screenshots
+
+| Framing | Outputs |
+|---|---|
+| <picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/framing-dark.png" /><img src="docs/screenshots/framing.png" alt="Scenes, shot size, speed and dead band" /></picture> | <picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/outputs-dark.png" /><img src="docs/screenshots/outputs.png" alt="Window, NDI, stream, second output and ATEM" /></picture> |
+
 ## Control protocol
 
 ```
@@ -32,7 +64,7 @@ status   scenes   subscribe on   tracking on   help
 
 HTTP: `GET /api/command?c=scene%201`, `POST /api/command`, `GET /api/status`, `GET /api/scenes`, `GET /api/tracking`, `GET /preview.mjpg`.
 
-## Development
+## Build from source
 
 ```sh
 npm install
@@ -46,5 +78,13 @@ NDI needs the free NDI runtime (ndi.video) on the target machine; LZ Room Frame 
 ## Status
 
 Tested on macOS (Apple Silicon) with a video file: detection, all layouts, scenes, programme B, NDI A/B (received with an NDI receiver), UDP stream, TCP/HTTP control and VISCA packets (checked on a UDP listener). **Not tested yet:** real cameras and capture cards, a real PTZ camera, a real ATEM, the Q-SYS plugin in Designer, Crestron, Windows and Linux builds.
+
+## Author & support
+
+Lars Zumpe Medienproduktion · [zumpelars.de](https://zumpelars.de) · bugs and ideas: [issues](https://github.com/larszu/lz-room-frame/issues).
+
+## License
+
+Proprietary, free to use: the released builds may be used free of charge, also commercially; the source code is public but not open source – see [LICENSE](LICENSE). Third-party components: [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md).
 
 NDI® is a registered trademark of Vizrt NDI AB. ATEM is a trademark of Blackmagic Design.

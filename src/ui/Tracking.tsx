@@ -34,7 +34,7 @@ export function PtzCard() {
         ]} />
       </Field>
       <div className="row" style={{ flexWrap: 'nowrap' }}>
-        <Field label="Kamera-IP"><input type="text" placeholder="192.168.0.50" value={p.host} onChange={(ev) => set((x) => { x.host = ev.target.value.trim(); })} /></Field>
+        <Field label="Kamera-IP"><input type="text" placeholder="192.0.2.50" value={p.host} onChange={(ev) => set((x) => { x.host = ev.target.value.trim(); })} /></Field>
         <Field label="Port"><input type="number" value={p.port} onChange={(ev) => set((x) => { x.port = Number(ev.target.value); })} /></Field>
       </div>
       <p className="muted" style={{ margin: 0 }}>Sony, Panasonic (VISCA-Modus), BirdDog, Avonic: UDP 52381. PTZOptics, Lumens, Marshall, AVer: TCP 5678 oder UDP 1259.</p>
@@ -62,7 +62,7 @@ export function AtemCard() {
   return (
     <Card title="ATEM: Bild im Bild folgt" action={<Toggle label="" checked={a.enabled} disabled={!desktop} onChange={(v) => set((x) => { x.enabled = v; })} />}>
       <p className="muted" style={{ margin: 0 }}>Die Kamera liegt auch direkt am ATEM. Eine SuperSource-Box zeigt sie beschnitten auf die Hauptperson, und der Ausschnitt folgt ihr. Der ATEM rechnet das Bild, ohne zusätzliche Verzögerung. Die Box vergrößert nicht über 1:1; für größere Nahaufnahmen die Zweite Ausgabe (B) als Eingang in den ATEM geben.</p>
-      <Field label="ATEM-IP"><input type="text" placeholder="192.168.10.240" value={a.host} onChange={(ev) => set((x) => { x.host = ev.target.value.trim(); })} /></Field>
+      <Field label="ATEM-IP"><input type="text" placeholder="192.0.2.240" value={a.host} onChange={(ev) => set((x) => { x.host = ev.target.value.trim(); })} /></Field>
       {a.enabled && <span className={`status ${st?.ok ? 'ok' : 'warn'}`}>{st?.message || 'verbinde …'}</span>}
       <div className="row" style={{ flexWrap: 'nowrap' }}>
         <Field label="SuperSource">

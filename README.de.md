@@ -1,10 +1,36 @@
-# LZ Room Frame
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/brand/lzm_hauptlogo_offwhite.svg" />
+    <img src="docs/brand/lzm_hauptlogo_navy.svg" alt="Lars Zumpe Medienproduktion" width="220" />
+  </picture>
+</p>
 
-Multi-Personen-Framing für Meetingräume, aus jeder Kamera. Jede Person bekommt eine eigene Kachel, wie bei der Tile View von KI-Raumkameras. Das Bild geht als Fenster, NDI, Stream oder virtuelle Kamera hinaus, gesteuert von Crestron, Q-SYS oder dem Browser.
+<h1 align="center">LZ Room Frame</h1>
 
-[English](README.md)
+<p align="center">
+  <b>Multi-Personen-Framing für Meetingräume – macOS, Windows und Linux.</b><br />
+  Jede Kamera rein, jede Person in eine eigene Kachel, raus an Zoom, Teams, NDI, einen Stream oder einen ATEM.
+</p>
 
-## Funktionen
+<p align="center">
+  <a href="https://github.com/larszu/lz-room-frame/releases/latest">
+    <img src="https://img.shields.io/badge/Download-macOS%20%7C%20Windows%20%7C%20Linux-1D324F?style=for-the-badge&logo=github&logoColor=white" alt="LZ Room Frame für macOS, Windows und Linux laden" height="40" />
+  </a>
+</p>
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/layouts-dark.png" />
+    <img src="docs/screenshots/layouts.png" alt="LZ Room Frame – automatische Raster nach Personenzahl" width="860" />
+  </picture>
+</p>
+
+<p align="center"><a href="README.md">English</a></p>
+
+---
+
+## Warum LZ Room Frame
+
 
 - **Jeder Eingang, jede Auflösung:** USB/UVC-Kameras, HDMI- und SDI-Capture-Karten, IP- und PTZ-Kameras per RTSP/SRT/RTMP, Videodateien. Die App fordert das Maximum des Geräts an; das Ausgabeformat ist frei (16:9, 9:16, quadratisch, 4K …).
 - **Framing wie bei KI-PTZ-Kameras:** Modi *Übersicht, Gruppe, Kacheln, Sprecher, Präsentator*. Dazu kommen Bildgrößen von Nah bis Halbtotale, Kopfluft, Rand um die Gruppe, Ruhezone, Geschwindigkeit und Übergang (weich, Blende, Schnitt). Außerdem eine Haltezeit und eine Schärfegrenze, die das Kamerabild nie über einen festen Faktor vergrößert.
@@ -20,7 +46,7 @@ Multi-Personen-Framing für Meetingräume, aus jeder Kamera. Jede Person bekommt
 
 Die Erkennung läuft lokal in einem Worker (MediaPipe EfficientDet-Lite0 + BlazeFace, GPU mit CPU-Rückfall). Es ist keine Cloud beteiligt.
 
-## Entwicklung
+## Aus dem Quellcode bauen
 
 ```sh
 npm install
@@ -44,5 +70,9 @@ Geprüft unter macOS (Apple Silicon) mit einer Videodatei:
 - echte PTZ-Kamera und echter ATEM
 - Q-SYS-Plugin in Designer und Crestron
 - Builds für Windows und Linux
+
+## Lizenz
+
+Proprietär, kostenlos nutzbar: Die veröffentlichten Builds dürfen kostenlos genutzt werden, auch geschäftlich. Der Quellcode ist öffentlich, aber nicht Open Source – siehe [LICENSE](LICENSE). Komponenten Dritter: [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md).
 
 NDI® ist eine eingetragene Marke der Vizrt NDI AB. ATEM ist eine Marke von Blackmagic Design.
