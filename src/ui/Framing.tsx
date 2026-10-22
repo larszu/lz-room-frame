@@ -9,6 +9,7 @@ import { InputPreview, type DrawMode } from './InputPreview';
 import { MODE_LABEL } from './Live';
 import { useEngine } from './useEngine';
 import { PtzCard } from './Tracking';
+import { AudioSpeaker } from './AudioSpeaker';
 
 const SPEED: Record<Speed, string> = { slow: 'Langsam', normal: 'Normal', fast: 'Schnell' };
 const TRANS: Record<Transition, string> = { smooth: 'Weich fahren', fade: 'Blende', cut: 'Schnitt' };
@@ -19,8 +20,6 @@ export function Framing() {
   const s = e.settings;
   const active = s.scenes.find((x) => x.id === s.activeScene);
   const [draw, setDraw] = useState<DrawMode>(null);
-  const [mics, setMics] = useState<MediaDeviceInfo[]>([]);
-  useEffect(() => { navigator.mediaDevices?.enumerateDevices().then((d) => setMics(d.filter((x) => x.kind === 'audioinput'))).catch(() => {}); }, []);
 
   const saveNew = () => {
     const name = `Szene ${s.scenes.length + 1}`;
@@ -121,22 +120,12 @@ export function Framing() {
         <Card title="Sprecher">
           <Field label="Wer spricht, erkennt …" hint={{
             off: 'Keine Sprechererkennung.',
-            auto: 'Raummikrofon plus Lippenbewegung. Experimentell: hängt von Licht und Blickwinkel ab.',
+            auto: 'Ein Mikrofon oder Stereo-Mikrofon: Sprache plus Lippenbewegung, bei Stereo zusätzlich die Richtung. Experimentell.',
             external: 'Das Audiosystem meldet über die Steuerung, welche Sprecherzone aktiv ist (z. B. Q-SYS-Automixer-Gates, Crestron, Tischmikrofone). Am zuverlässigsten.',
           }[s.speaker.source]}>
-            <Seg label="Sprechererkennung" value={s.speaker.source} onChange={(v: SpeakerSource) => e.update((st) => { st.speaker.source = v; })} options={[{ value: 'off', label: 'Aus' }, { value: 'auto', label: 'Automatisch' }, { value: 'external', label: 'Audiosystem' }]} />
+            <Seg label="Sprechererkennung" value={s.speaker.source} onChange={(v: SpeakerSource) => e.update((st) => { st.speaker.source = v; })} options={[{ value: 'off', label: 'Aus' }, { value: 'auto', label: 'Mikrofon' }, { value: 'external', label: 'Audiosystem' }]} />
           </Field>
-          {s.speaker.source === 'auto' && (
-            <>
-              <Field label="Raummikrofon">
-                <select value={s.speaker.micId} onChange={(ev) => e.update((st) => { st.speaker.micId = ev.target.value; })}>
-                  <option value="">Standardmikrofon</option>
-                  {mics.map((m, i) => <option key={m.deviceId || i} value={m.deviceId}>{m.label || `Mikrofon ${i + 1}`}</option>)}
-                </select>
-              </Field>
-              <Slider label="Sprachschwelle" value={s.speaker.threshold} min={0.005} max={0.2} step={0.005} format={(v) => v.toFixed(3)} onChange={(v) => e.update((st) => { st.speaker.threshold = v; })} />
-            </>
-          )}
+          {s.speaker.source === 'auto' && <AudioSpeaker />}
           {s.speaker.source === 'external' && (
             <>
               <p className="muted" style={{ margin: 0 }}>Sprecherzonen im Kamerabild unter „Raum → Sprecherzone" ziehen; Zone 1 ist die zuerst gezogene. Befehl: <code>zone 1 on</code> / <code>zone 1 off</code>.</p>

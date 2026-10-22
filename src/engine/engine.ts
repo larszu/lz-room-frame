@@ -10,7 +10,8 @@ import { LAYOUT_TEMPLATES } from './layouts';
 import { ptzAim, ptzDrive, viscaPackets, STOP, type PtzDrive } from './ptz';
 import { ssBoxFor, toRaw } from './atem';
 import { personCrop, groupCrop, VirtualCamera } from './framing';
-import { applyZones, LipSpeaker, MicLevel, mouthRegion } from './speaker';
+import { applyZones, fuseSpeaking, LipSpeaker, mouthRegion } from './speaker';
+import { AudioAnalyzer, fitLine, panToX, type AudioReading } from './audio';
 import { filterDetections, Tracker } from './tracker';
 import { DEFAULT_SETTINGS, mergeSettings, type Settings } from './settings';
 import type { Detection, Framing, Layout, Person } from './types';
@@ -59,7 +60,13 @@ export class Engine {
   private lastTracking = 0;
   ptzDrive: PtzDrive = STOP;
   private ptzKey = '';
-  private mic = new MicLevel();
+  readonly audio = new AudioAnalyzer();
+  audioReading: AudioReading = this.audio.last;
+  /** sound direction as picture position 0…1 (stereo), null without */
+  audioX: number | null = null;
+  private lastAudio = 0;
+  /** calibration points collected while one person speaks */
+  calibPoints: { pan: number; x: number }[] = [];
   private lips = new LipSpeaker();
   persons: Person[] = [];
   views: TileView[] = [];
@@ -100,10 +107,10 @@ export class Engine {
   private emit() { this.version++; this.listeners.forEach((f) => f()); }
 
   update(fn: (s: Settings) => void) {
-    const before = JSON.stringify(this.settings.output) + JSON.stringify(this.settings.programB) + JSON.stringify(this.settings.input) + this.settings.speaker.source + this.settings.speaker.micId;
+    const before = JSON.stringify(this.settings.output) + JSON.stringify(this.settings.programB) + JSON.stringify(this.settings.input) + this.settings.speaker.source + this.settings.speaker.micId + this.settings.speaker.channels;
     fn(this.settings);
     try { localStorage.setItem(KEY, JSON.stringify(this.settings)); } catch { /* full or blocked */ }
-    const after = JSON.stringify(this.settings.output) + JSON.stringify(this.settings.programB) + JSON.stringify(this.settings.input) + this.settings.speaker.source + this.settings.speaker.micId;
+    const after = JSON.stringify(this.settings.output) + JSON.stringify(this.settings.programB) + JSON.stringify(this.settings.input) + this.settings.speaker.source + this.settings.speaker.micId + this.settings.speaker.channels;
     if (before !== after) { this.resize(); this.syncSinks(); this.applySpeakerSource(); }
     this.emit();
   }
@@ -199,8 +206,8 @@ export class Engine {
 
   private applySpeakerSource() {
     const sp = this.settings.speaker;
-    if (sp.source === 'auto') this.mic.start(sp.micId).catch((e) => console.warn('microphone', e));
-    else this.mic.stop();
+    if (sp.source === 'auto') this.audio.start(sp.micId, sp.channels === 'stereo').then(() => this.emit());
+    else this.audio.stop();
   }
 
   // ------------------------------------------------------------ loop
@@ -243,6 +250,7 @@ export class Engine {
       }
     }
     if (W && H) { this.followAtem(now, dt, W, H); this.pushTracking(now, W, H); }
+    if (s.speaker.source === 'auto' && now - this.lastAudio > 50) this.readAudio(now);
     this.draw(this.ctx, this.views, s.output.width, s.output.height, s.framing, W, H);
     if (s.programB.enabled) this.draw(this.ctxB, this.viewsB, s.programB.width, s.programB.height, this.framingB() ?? s.framing, W, H);
     this.feed(now);
@@ -252,6 +260,35 @@ export class Engine {
       this.emit();
     }
   }
+
+  private readAudio(now: number) {
+    this.lastAudio = now;
+    const sp = this.settings.speaker;
+    const r = this.audio.read(sp.threshold);
+    this.audioReading = r;
+    // uncalibrated and mirrored picture: the sound image is mirrored too
+    this.audioX = r.pan === null ? null : panToX(r.pan, sp.calib, sp.width, sp.swap !== (this.settings.input.mirror && !sp.calib));
+  }
+
+  /**
+   * Calibration: while exactly one person speaks, pair the sound direction with where that
+   * person sits. Two or more positions across the room give the line direction → picture.
+   */
+  addCalibrationPoint(): string {
+    const { W } = this.srcSize();
+    const r = this.audioReading;
+    if (r.pan === null) return 'Keine Richtung: Stereo-Eingang und Sprache nötig';
+    const p = this.mainPerson();
+    if (!p || !W) return 'Keine Person im Bild';
+    const pan = this.settings.speaker.swap ? -r.pan : r.pan;
+    this.calibPoints.push({ pan, x: (p.head.x + p.head.w / 2) / W });
+    const line = fitLine(this.calibPoints);
+    if (line) this.update((s) => { s.speaker.calib = line; });
+    else this.emit();
+    return line ? `Kalibriert mit ${this.calibPoints.length} Punkten` : 'Punkt 1 gespeichert – jetzt eine Person auf der anderen Seite sprechen lassen';
+  }
+
+  resetCalibration() { this.calibPoints = []; this.update((s) => { s.speaker.calib = null; }); }
 
   /** The person the PiP, the ATEM box and the PTZ follow: speaker, else presenter, else the largest. */
   mainPerson(): Person | null {
@@ -346,8 +383,12 @@ export class Engine {
       if (mirror) dets = dets.map((d) => ({ ...d, body: flip(d.body), head: d.head && flip(d.head) }));
       dets = filterDetections(dets, this.settings.zones, W, H);
       this.lastDetections = dets;
-      if (sp === 'auto' && res.mouths) this.lips.update(prev, res.mouths, this.mic.read(), this.settings.speaker.threshold, performance.now());
+      const lipScores = sp === 'auto' && res.mouths ? this.lips.update(prev, res.mouths, performance.now()) : new Map<number, number>();
       const persons = this.tracker.update(dets, performance.now(), this.settings.framing.holdTime);
+      if (sp === 'auto') {
+        const a = this.settings.speaker;
+        fuseSpeaking(persons, lipScores, this.audioReading.voice, this.audioX, W, a.lipWeight, 0.12);
+      }
       if (sp === 'external') applyZones(persons, this.settings.zones, this.activeZones, W);
       else if (sp === 'off') persons.forEach((p) => (p.speaking = 0));
       this.persons = persons;
@@ -541,7 +582,7 @@ export class Engine {
     }
   }
 
-  destroy() { clearTimeout(this.timer); this.closeInput(); this.closeWindow('a'); this.closeWindow('b'); this.mic.stop(); }
+  destroy() { clearTimeout(this.timer); this.closeInput(); this.closeWindow('a'); this.closeWindow('b'); this.audio.stop(); }
 }
 
 export const engine = new Engine();

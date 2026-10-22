@@ -36,7 +36,7 @@
 - **Framing like AI PTZ cameras:** modes *overview, group, tiles, speaker, presenter*; shot sizes from close-up to wide; headroom, group margin, dead band, speed, transition (smooth, fade, cut), hold time and a sharpness guard that never enlarges the camera picture beyond a set factor.
 - **Layouts that follow the head count:** grid, grid with centre overview (as in the "7 tiles with centre view"), speaker large with strip, overview with strip. Custom layouts can be drawn on a 12 × 12 grid and assigned to a head count or fixed per scene, e.g. *group large + close-up as picture-in-picture*.
 - **Room:** room boundary, exclusion zones (glass walls, doors, screens) and a minimum head size.
-- **Speaker:** from the room's audio system (speaker zones switched by Q-SYS automixer gates, Crestron, seat mics) or experimental lip movement with the room mic.
+- **Speaker:** from the room's audio system (speaker zones switched by Q-SYS automixer gates, Crestron, seat mics), or from any single audio input – the camera's own sound through a capture card (e.g. a mirrorless camera over HDMI), USB audio, a 3.5 mm jack. *Mono:* voice activity plus lip movement. *Stereo:* adds the direction from level and time difference (GCC-PHAT), with a two-point calibration onto the picture. A mono source sent as two equal channels is detected.
 - **Second output (B):** a second picture from the same camera with its own size and scene, e.g. 9:16 for social media.
 - **PTZ auto-tracking:** detection steers a real PTZ camera over VISCA (Sony VISCA over IP UDP 52381, VISCA TCP/UDP).
 - **ATEM:** a SuperSource box shows the camera cropped to the main person and follows them. Tracking data are also available as `TRK` lines and `GET /api/tracking`.

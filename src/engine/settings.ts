@@ -40,7 +40,21 @@ export interface Settings {
   zones: RoomZones;
   accuracy: Accuracy;
   detectHz: number;
-  speaker: { source: SpeakerSource; micId: string; threshold: number };
+  speaker: {
+    source: SpeakerSource;
+    micId: string;
+    threshold: number;
+    /** mono: voice + lips; stereo: plus the sound direction */
+    channels: 'mono' | 'stereo';
+    /** left and right swapped (mic turned around, camera behind the mic) */
+    swap: boolean;
+    /** uncalibrated: how much of the picture width the stereo image spans (0.3 … 1.5) */
+    width: number;
+    /** direction → picture x, from the calibration */
+    calib: { a: number; b: number } | null;
+    /** share of lip movement against the direction (0 = direction only) */
+    lipWeight: number;
+  };
   scenes: Scene[];
   activeScene: string | null;
   layouts: Layout[];
@@ -80,7 +94,7 @@ export const DEFAULT_SETTINGS: Settings = {
   zones: { boundary: { x: 0, y: 0, w: 1, h: 1 }, exclusions: [], minHead: 0.025, speakerZones: [] },
   accuracy: 'accurate',
   detectHz: 6,
-  speaker: { source: 'off', micId: '', threshold: 0.04 },
+  speaker: { source: 'off', micId: '', threshold: 0.02, channels: 'mono', swap: false, width: 1, calib: null, lipWeight: 0.5 },
   scenes: BUILTIN_SCENES,
   activeScene: 'tiles',
   layouts: [],

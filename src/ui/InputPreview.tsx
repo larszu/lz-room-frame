@@ -49,6 +49,11 @@ export function InputPreview({ draw, onRect, outlines = true }: { draw?: DrawMod
           g.strokeRect(r.x * k, r.y * k, r.w * k, r.h * k);
         }
       }
+      if (engine.audioX !== null && engine.settings.speaker.source === 'auto') {
+        const x = engine.audioX * cw;
+        g.strokeStyle = engine.audioReading.voice ? 'rgba(79,195,247,.9)' : 'rgba(79,195,247,.35)'; g.lineWidth = lw * 2; g.setLineDash([10, 8]);
+        g.beginPath(); g.moveTo(x, 0); g.lineTo(x, ch); g.stroke(); g.setLineDash([]);
+      }
       const order = engine.director.order;
       for (const p of engine.persons) {
         const n = order.indexOf(p.id) + 1;
