@@ -1,6 +1,6 @@
 {
   "name": "lz-room-frame",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Multi-person framing for meeting rooms: any camera in, AI framing presets, tile layouts, out as window, NDI, virtual camera or stream; control API for Crestron and Q-SYS",
   "type": "module",

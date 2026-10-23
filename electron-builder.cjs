@@ -1,6 +1,8 @@
 // electron-builder config. Signing turns on automatically when CSC_LINK + CSC_KEY_PASSWORD
 // are set; without them the build is unsigned. The packaged package.json must not say
 // `type: module` (the CommonJS entry would not load) – extraMetadata sets commonjs.
+const signed = Boolean(process.env.CSC_LINK);
+
 module.exports = {
   appId: 'de.zumpelars.lzroomframe',
   productName: 'LZ Room Frame',
@@ -15,7 +17,9 @@ module.exports = {
   mac: {
     category: 'public.app-category.video',
     target: [{ target: 'dmg' }, { target: 'zip' }],
-    hardenedRuntime: true,
+    // without a certificate sign ad-hoc; an unsealed bundle is reported as damaged
+    identity: signed ? undefined : '-',
+    hardenedRuntime: signed,
     extendInfo: {
       NSCameraUsageDescription: 'LZ Room Frame rahmt die Personen im Kamerabild.',
       NSMicrophoneUsageDescription: 'Das Raummikrofon hilft zu erkennen, wer spricht.',
