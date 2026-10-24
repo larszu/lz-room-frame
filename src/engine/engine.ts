@@ -152,10 +152,11 @@ export class Engine {
       if (inp.kind === 'device') {
         const v = document.createElement('video');
         v.muted = true; v.playsInline = true;
-        // no fixed resolution: ask for the most the device offers unless one was chosen
-        const video: MediaTrackConstraints = {
-          width: { ideal: inp.width || 4096 }, height: { ideal: inp.height || 2160 }, frameRate: { ideal: inp.fps || 30 },
-        };
+        // no fixed resolution: the widest landscape mode unless one was chosen. A height wish
+        // without a chosen size picks portrait modes on some cameras (FaceTime HD: 1080×1920).
+        const video: MediaTrackConstraints = inp.width && inp.height
+          ? { width: { ideal: inp.width }, height: { ideal: inp.height }, frameRate: { ideal: inp.fps || 30 } }
+          : { width: { ideal: 4096 }, aspectRatio: { min: 1 }, frameRate: { ideal: inp.fps || 30 } };
         if (inp.deviceId) video.deviceId = { exact: inp.deviceId };
         this.stream = await navigator.mediaDevices.getUserMedia({ video, audio: false });
         v.srcObject = this.stream;

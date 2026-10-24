@@ -82,7 +82,9 @@ async function run(q: DetectRequest): Promise<DetectResult> {
       found.push({ body, head: null, score: d.categories[0]?.score ?? 0.5 });
     }
   }
-  const people = nms(found, 0.45);
+  // a tile sees part of a person as a person of its own: drop boxes mostly inside a surer one
+  const inner = (a: Rect, b: Rect) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y)) / (a.w * a.h);
+  const people = nms(found, 0.45).filter((p, i, all) => !all.some((q, j) => j !== i && q.score >= p.score && q.body.w * q.body.h > p.body.w * p.body.h && inner(p.body, q.body) > 0.7));
   const maxFaces = 12;
   const start = people.length > maxFaces ? (faceRound++ * maxFaces) % people.length : 0;
   for (let i = 0; i < Math.min(maxFaces, people.length); i++) {
@@ -103,7 +105,10 @@ async function run(q: DetectRequest): Promise<DetectResult> {
   }
   // two body boxes around the same person (nested detections) find the same face: keep one
   const unique = people.filter((p, i) => !p.head || !people.some((q, j) => j !== i && q.head && iou(p.head!, q.head) > 0.35 && (q.score > p.score || (q.score === p.score && j < i))));
-  people.length = 0; people.push(...unique);
+  // without a face a box needs more certainty, and close to the camera (big box) a real
+  // person shows a face: big faceless boxes are mostly furniture
+  const sure = unique.filter((p) => p.head || (p.score >= 0.4 && (p.body.h < src.height * 0.5 || p.score >= 0.85)));
+  people.length = 0; people.push(...sure);
   // close to the camera (webcam, head and shoulders) the person detector often finds nobody
   // or no head: faces in the whole picture fill both gaps
   const fs = crop(src, { x: 0, y: 0, w: src.width, h: src.height }, 640);
@@ -114,6 +119,7 @@ async function run(q: DetectRequest): Promise<DetectResult> {
     if (people.some((p) => p.head && iou(p.head, head) > 0.2)) continue;
     const owner = people.find((p) => !p.head && head.x + head.w / 2 > p.body.x && head.x + head.w / 2 < p.body.x + p.body.w && head.y >= p.body.y - head.h && head.y < p.body.y + p.body.h * 0.5);
     if (owner) { owner.head = head; continue; }
+    if ((d.categories[0]?.score ?? 0) < 0.8) continue; // a face alone needs to be certain
     const bw = head.w * 3, bh = Math.min(src.height - head.y, head.h * 4);
     people.push({ body: { x: head.x + head.w / 2 - bw / 2, y: head.y, w: bw, h: Math.max(head.h, bh) }, head, score: d.categories[0]?.score ?? 0.5 });
   }
