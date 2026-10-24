@@ -1,0 +1,4 @@
+LIBRARY lz-vcam-source
+EXPORTS
+  DllGetClassObject PRIVATE
+  DllCanUnloadNow PRIVATE

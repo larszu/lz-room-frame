@@ -1,0 +1,13 @@
+name: helpers
+on:
+  pull_request:
+    paths: ['helpers/**', 'scripts/build-helpers.mjs', '.github/workflows/helpers.yml']
+  workflow_dispatch:
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+      - run: node scripts/build-helpers.mjs
+      - run: helpers\bin\lz-vcam.exe --probe
