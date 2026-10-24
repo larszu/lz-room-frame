@@ -16,6 +16,7 @@
 #include <mfidl.h>
 #include <mfvirtualcamera.h>
 #include <shlobj.h>
+#include <sddl.h>
 #include <fcntl.h>
 #include <io.h>
 #include <cstdio>
@@ -54,7 +55,11 @@ static bool registered() {
 
 static int doRegister() {
   std::wstring dst = installedDll();
-  CreateDirectoryW(dst.substr(0, dst.find_last_of(L'\\')).c_str(), nullptr);
+  // writable for the Frame Server (LocalService), which keeps a small log there
+  SECURITY_ATTRIBUTES sa = { sizeof(sa), nullptr, FALSE };
+  ConvertStringSecurityDescriptorToSecurityDescriptorW(L"D:(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)(A;OICI;0x1301bf;;;LS)(A;OICI;0x1200a9;;;BU)", SDDL_REVISION_1, &sa.lpSecurityDescriptor, nullptr);
+  CreateDirectoryW(dst.substr(0, dst.find_last_of(L'\\')).c_str(), sa.lpSecurityDescriptor ? &sa : nullptr);
+  if (sa.lpSecurityDescriptor) LocalFree(sa.lpSecurityDescriptor);
   if (!CopyFileW((exeDir() + L"\\lz-vcam-source.dll").c_str(), dst.c_str(), FALSE)) { fprintf(stderr, "copy failed: %lu\n", GetLastError()); return 2; }
   HKEY k;
   if (RegCreateKeyExW(HKEY_LOCAL_MACHINE, KEY, 0, nullptr, 0, KEY_WRITE, nullptr, &k, nullptr) != ERROR_SUCCESS) { fprintf(stderr, "registry failed\n"); return 3; }
@@ -127,6 +132,7 @@ int wmain(int argc, wchar_t** argv) {
   std::vector<BYTE> buf;
   HANDLE map = nullptr; LzVcamShared* mem = nullptr;
   ULONGLONG lastTry = 0;
+  unsigned misses = 0;
   for (;;) {
     BYTE head[16];
     if (!readAll(head, 16) || memcmp(head, "LZRF", 4)) break;
@@ -139,6 +145,8 @@ int wmain(int argc, wchar_t** argv) {
       lastTry = GetTickCount64();
       map = OpenFileMappingW(FILE_MAP_WRITE, FALSE, LZ_VCAM_MAPPING);
       if (map) mem = (LzVcamShared*)MapViewOfFile(map, FILE_MAP_WRITE, 0, 0, sizeof(LzVcamShared));
+      if (mem) fprintf(stderr, "camera memory connected\n");
+      else if (++misses % 10 == 1) fprintf(stderr, "waiting for camera memory (%lu)\n", GetLastError());
     }
     if (!mem) continue;
     scaleInto(mem->bgra, buf.data(), w, h);

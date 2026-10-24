@@ -2,6 +2,7 @@
 // app does, read the camera like Teams would, compare.
 import { execFileSync, spawn } from 'node:child_process';
 import { join } from 'node:path';
+import { readFileSync } from 'node:fs';
 
 const bin = join('helpers', 'bin');
 console.log(execFileSync(join(bin, 'lz-vcam.exe'), ['--register']).toString());
@@ -17,6 +18,7 @@ await new Promise((r) => setTimeout(r, 3000));
 let out = '';
 try { out = execFileSync(join(bin, 'vcam-test.exe'), { timeout: 60000 }).toString(); } catch (e) { out = String(e.stdout ?? e); }
 console.log(out);
+try { console.log(readFileSync(join(process.env.ProgramData, 'LZ Room Frame', 'vcam.log'), 'utf8')); } catch (e) { console.log('no vcam.log', e.message); }
 clearInterval(timer); feed.stdin.end();
 const res = JSON.parse(out.trim().split('\n').pop());
 const near = (a, b) => Math.abs(a - b) <= 12;

@@ -16,6 +16,7 @@
 #include <sddl.h>
 #include <new>
 #include <cstring>
+#include <cstdio>
 #include "vcam-common.h"
 
 // IKsControl (ksproxy.h) without the DirectShow headers
@@ -44,7 +45,19 @@ public:
     ConvertStringSecurityDescriptorToSecurityDescriptorW(L"D:(A;;GA;;;WD)(A;;GA;;;SY)(A;;GA;;;LS)S:(ML;;NW;;;LW)", SDDL_REVISION_1, &sa.lpSecurityDescriptor, nullptr);
     map_ = CreateFileMappingW(INVALID_HANDLE_VALUE, sa.lpSecurityDescriptor ? &sa : nullptr, PAGE_READWRITE, 0, sizeof(LzVcamShared), LZ_VCAM_MAPPING);
     if (sa.lpSecurityDescriptor) LocalFree(sa.lpSecurityDescriptor);
+    DWORD err = map_ ? 0 : GetLastError();
     if (map_) mem_ = (LzVcamShared*)MapViewOfFile(map_, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(LzVcamShared));
+    Log(map_ ? (mem_ ? "shared memory ready" : "map view failed") : "create mapping failed", map_ ? (mem_ ? 0 : GetLastError()) : err);
+  }
+  /** One line in %ProgramData%\LZ Room Frame\vcam.log: the Frame Server has no console. */
+  static void Log(const char* what, DWORD code) {
+    char path[MAX_PATH]; DWORD n = GetEnvironmentVariableA("ProgramData", path, MAX_PATH);
+    if (!n || n > MAX_PATH - 40) return;
+    strcat_s(path, "\\LZ Room Frame\\vcam.log");
+    HANDLE f = CreateFileA(path, FILE_APPEND_DATA, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS, 0, nullptr);
+    if (f == INVALID_HANDLE_VALUE) return;
+    char line[200]; int len = sprintf_s(line, "%llu source pid %lu: %s (%lu)\r\n", GetTickCount64(), GetCurrentProcessId(), what, code);
+    DWORD w; WriteFile(f, line, len, &w, nullptr); CloseHandle(f);
   }
   ~Picture() { if (mem_) UnmapViewOfFile(mem_); if (map_) CloseHandle(map_); }
   /** BGRA source picture or null when no feeder sent a frame in the last 2 s. */
