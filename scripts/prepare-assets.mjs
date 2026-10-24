@@ -41,7 +41,8 @@ if (!(existsSync(rtmo) && statSync(rtmo).size > 1e6)) {
   const zip = join(tmpdir(), `lzrf-rtmo-${process.pid}.zip`), out = join(tmpdir(), `lzrf-rtmo-${process.pid}`);
   writeFileSync(zip, Buffer.from(await res.arrayBuffer()));
   mkdirSync(out, { recursive: true });
-  execFileSync('tar', ['-xf', zip, '-C', out]); // bsdtar reads zip on macOS, Windows and most Linux
+  // bsdtar (macOS, Windows) reads zip, GNU tar (Linux) does not: unzip there
+  try { execFileSync('tar', ['-xf', zip, '-C', out], { stdio: 'ignore' }); } catch { execFileSync('unzip', ['-o', '-q', zip, '-d', out]); }
   cpSync(join(out, 'end2end.onnx'), rtmo);
   console.log('model rtmo-s.onnx → public/models');
 }
