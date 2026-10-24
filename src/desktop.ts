@@ -13,6 +13,9 @@ export interface DesktopInfo {
   addresses: string[];
 }
 
+/** ok = ready; setup = one click with the admin prompt makes it ready; install = command to run first. */
+export interface VcamStatus { ok: boolean; setup: boolean; error: string; install?: string; device?: string }
+
 export interface Display { id: number; label: string; width: number; height: number; primary: boolean }
 
 export interface Desktop {
@@ -24,6 +27,7 @@ export interface Desktop {
   ptz: { configure(cfg: { protocol: string; host: string; port: number } | null): void; send(packets: number[][]): void; stop(): void; status(): Promise<{ ok: boolean; message: string }> };
   atem: { configure(host: string): void; setBox(ssrc: number, box: number, props: Record<string, number | boolean>): void; status(): Promise<{ ok: boolean; message: string }> };
   network: { start(url: string): Promise<{ ok: true; url: string } | { ok: false; error: string }>; stop(): void };
+  vcam: { status(): Promise<VcamStatus>; setup(): Promise<VcamStatus> };
   openVideoFile(): Promise<string | null>;
   setControl(c: { http: number; tcp: number; enabled: boolean }): Promise<{ ok: boolean; error?: string }>;
   setAutostart(on: boolean, hidden: boolean): Promise<void>;

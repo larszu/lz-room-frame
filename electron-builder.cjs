@@ -8,7 +8,7 @@ module.exports = {
   productName: 'LZ Room Frame',
   copyright: `Copyright © ${new Date().getFullYear()} Lars Zumpe`,
   directories: { output: 'release', buildResources: 'build' },
-  files: ['dist/**/*', 'electron/**/*', 'helpers/bin/**/*', 'package.json'],
+  files: ['dist/**/*', 'electron/**/*', 'helpers/bin/**/*', '!helpers/bin/*.{obj,lib,exp}', 'package.json'],
   extraMetadata: { type: 'commonjs', main: 'electron/main.cjs' },
   // helpers and ffmpeg must be real files outside the archive to be started
   asarUnpack: ['helpers/bin/**', '**/node_modules/ffmpeg-static/**'],
@@ -29,5 +29,7 @@ module.exports = {
   win: { target: [{ target: 'nsis', arch: ['x64'] }] },
   nsis: { oneClick: false, allowToChangeInstallationDirectory: true, perMachine: false },
   linux: { target: [{ target: 'AppImage' }, { target: 'deb' }], category: 'AudioVideo', maintainer: 'Lars Zumpe' },
+  // the virtual camera; the app loads it with one click (pkexec)
+  deb: { recommends: ['v4l2loopback-dkms'] },
   publish: [{ provider: 'github', owner: 'larszu', repo: 'lz-room-frame', releaseType: 'draft' }],
 };

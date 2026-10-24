@@ -41,7 +41,7 @@
 - **Second output (B):** a second picture from the same camera with its own size and scene, e.g. 9:16 for social media.
 - **PTZ auto-tracking:** detection steers a real PTZ camera over VISCA (Sony VISCA over IP UDP 52381, VISCA TCP/UDP).
 - **ATEM:** a SuperSource box shows the camera cropped to the main person and follows them. Tracking data are also available as `TRK` lines and `GET /api/tracking`.
-- **Outputs:** fullscreen window on any display or HDMI out, NDI (A and B), RTMP/SRT/RTSP/UDP stream, Linux v4l2loopback. Zoom/Teams/Meet run through NDI Virtual Input (Mac) or NDI Webcam Input (Windows).
+- **Outputs:** fullscreen window on any display or HDMI out, NDI (A and B), RTMP/SRT/RTSP/UDP stream, Linux v4l2loopback. As a camera in Zoom, Teams and Meet: built-in virtual camera on Windows 11 and Linux (set up once with one click and the system's admin prompt); on the Mac through NDI Virtual Input.
 - **Control:** TCP 4198 (one command per line), HTTP and WebSocket 4197, a web remote for touch panels, a Q-SYS plugin and Crestron examples (`docs/integrations`).
 - **Room PC:** start with the system, start hidden in the tray, and come back with the last input, scene and outputs.
 

@@ -11,6 +11,7 @@ import { RoomCard } from './Framing';
 import { useDesktopInfo } from './Outputs';
 import { SourcePicker } from './SourcePicker';
 import { useEngine } from './useEngine';
+import { VirtualCamera } from './VirtualCamera';
 
 function Step({ n, title, done, children }: { n: number; title: string; done?: boolean; children: ReactNode }) {
   return (
@@ -73,6 +74,7 @@ export function Setup({ go }: { go: (v: string) => void }) {
             <SinkState s={e.sinks.stream} />
           </>
         )}
+        <VirtualCamera />
         <More label="Format">
           <Field label="Auflösung">
             <select value={`${o.width}x${o.height}`} onChange={(ev) => { const [w, h] = ev.target.value.split('x').map(Number); if (w && h) setOut((x) => { x.width = w; x.height = h; }); }}>
@@ -81,7 +83,6 @@ export function Setup({ go }: { go: (v: string) => void }) {
             </select>
           </Field>
         </More>
-        {!desktop && <p className="muted" style={{ margin: 0 }}>NDI und Stream gibt es nur in der Desktop-App.</p>}
       </Step>
 
       <Step n={4} title="Raum (optional)">
