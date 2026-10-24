@@ -7,7 +7,8 @@ const os = require('node:os');
 const crypto = require('node:crypto');
 const { pathToFileURL } = require('node:url');
 const { ControlServer } = require('./server.cjs');
-const { Sinks, NetworkInput, probeNdi, hasFfmpeg } = require('./sinks.cjs');
+const { Sinks, NetworkInput, probeNdi, hasFfmpeg, helperPath } = require('./sinks.cjs');
+const { vcamStatus, vcamSetup } = require('./vcam.cjs');
 const { Ptz } = require('./ptz.cjs');
 const { AtemLink } = require('./atem.cjs');
 
@@ -72,6 +73,8 @@ ipcMain.handle('lzrf:info', () => {
   ffmpegOk ??= hasFfmpeg();
   return { httpPort: server.ports.http, tcpPort: server.ports.tcp, token, platform: process.platform, version: app.getVersion(), ndi: ndiInfo, ffmpeg: ffmpegOk, addresses: addresses() };
 });
+ipcMain.handle('lzrf:vcam-status', () => vcamStatus(helperPath));
+ipcMain.handle('lzrf:vcam-setup', () => vcamSetup(helperPath));
 ipcMain.handle('lzrf:displays', () => {
   const primary = screen.getPrimaryDisplay().id;
   return screen.getAllDisplays().map((d, i) => ({ id: d.id, label: d.label || `Bildschirm ${i + 1}`, width: Math.round(d.size.width * d.scaleFactor), height: Math.round(d.size.height * d.scaleFactor), primary: d.id === primary }));

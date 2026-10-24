@@ -4,6 +4,7 @@ import { OUTPUT_PRESETS } from '../engine/settings';
 import { Card, Field, SinkState, Slider, Toggle } from './controls';
 import { useEngine } from './useEngine';
 import { AtemCard } from './Tracking';
+import { VirtualCamera } from './VirtualCamera';
 
 export function useDesktopInfo() {
   const [info, setInfo] = useState<DesktopInfo | null>(null);
@@ -80,20 +81,16 @@ export function Outputs() {
         <AtemCard />
 
         <Card title="Als Kamera in Zoom, Teams, Meet">
-          {platform === 'linux' ? (
-            <>
-              <Toggle label="Virtuelle Kamera (v4l2loopback)" checked={o.v4l2.enabled} onChange={(v) => set((x) => { x.v4l2.enabled = v; })} />
-              <SinkState s={e.sinks.v4l2} />
-              <Field label="Gerät" hint={<>Einmalig: <code>sudo modprobe v4l2loopback devices=1 video_nr=10 card_label="LZ Room Frame" exclusive_caps=1</code></>}>
-                <input type="text" value={o.v4l2.device} onChange={(ev) => set((x) => { x.v4l2.device = ev.target.value; })} />
-              </Field>
-            </>
-          ) : (
+          <VirtualCamera />
+          {platform === 'darwin' && (
             <ol style={{ margin: 0, paddingInlineStart: '1.2em', display: 'grid', gap: 6 }}>
               <li>NDI oben einschalten.</li>
-              <li>{platform === 'darwin' ? <>„NDI Virtual Input" aus den NDI Tools starten und „{o.ndi.name}" wählen.</> : <>„NDI Webcam Input" aus den NDI Tools starten und „{o.ndi.name}" wählen.</>}</li>
+              <li>„NDI Virtual Input" aus den NDI Tools starten und „{o.ndi.name}" wählen.</li>
               <li>In Zoom, Teams oder Meet die Kamera „NDI Video" wählen.</li>
             </ol>
+          )}
+          {platform === 'linux' && (
+            <Field label="Gerät"><input type="text" value={o.v4l2.device} onChange={(ev) => set((x) => { x.v4l2.device = ev.target.value; })} /></Field>
           )}
           <p className="muted" style={{ margin: 0 }}>In Zoom Rooms und Teams Rooms: das Ausgabefenster über HDMI an den USB-Capture-Eingang des Raumsystems geben, oder NDI an einen NDI-fähigen Codec.</p>
         </Card>

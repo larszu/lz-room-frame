@@ -29,6 +29,10 @@ contextBridge.exposeInMainWorld('lzrf', {
     start: (url) => ipcRenderer.invoke('lzrf:net-start', url),
     stop: () => ipcRenderer.send('lzrf:net-stop'),
   },
+  vcam: {
+    status: () => ipcRenderer.invoke('lzrf:vcam-status'),
+    setup: () => ipcRenderer.invoke('lzrf:vcam-setup'),
+  },
   openVideoFile: () => ipcRenderer.invoke('lzrf:open-video'),
   setControl: (c) => ipcRenderer.invoke('lzrf:set-control', c),
   setAutostart: (on, hidden) => ipcRenderer.invoke('lzrf:autostart', on, hidden),

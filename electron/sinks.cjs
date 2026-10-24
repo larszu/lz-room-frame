@@ -99,8 +99,10 @@ class Sinks {
     if (cfg.stream?.enabled && !sargs) { this.stream.stop(); this.stream.state = { on: true, ok: false, message: 'Adresse muss mit rtmp://, rtmps://, srt://, rtsp://, udp:// oder rtp:// beginnen' }; }
     else if (sargs) this.stream.start(ffmpegPath(), [...raw, ...sargs], `${w}x${h}@${fps} ${cfg.stream.url} ${cfg.stream.bitrate}`);
     else this.stream.stop();
+    // the virtual camera: v4l2loopback through ffmpeg on Linux, the Media Foundation camera on Windows
     if (cfg.v4l2?.enabled && process.platform === 'linux') this.v4l2.start(ffmpegPath(), [...raw, '-pix_fmt', 'yuv420p', '-f', 'v4l2', cfg.v4l2.device || '/dev/video10'], `${w}x${h}@${fps} ${cfg.v4l2.device}`);
-    else { this.v4l2.stop(); if (cfg.v4l2?.enabled) this.v4l2.state = { on: true, ok: false, message: 'Nur unter Linux (v4l2loopback)' }; }
+    else if (cfg.v4l2?.enabled && process.platform === 'win32') this.v4l2.start(helperPath('lz-vcam'), [], 'vcam');
+    else { this.v4l2.stop(); if (cfg.v4l2?.enabled) this.v4l2.state = { on: true, ok: false, message: 'Auf dem Mac nicht verfügbar' }; }
     this.onChange?.();
   }
   /** One frame: 16-byte header "LZRF" w h fps + RGBA. */
@@ -112,10 +114,11 @@ class Sinks {
     }
     const w = buf.readUInt32LE(4), h = buf.readUInt32LE(8);
     if (this.ndi.proc) this.ndi.write(buf);
+    if (this.v4l2.proc && process.platform === 'win32') this.v4l2.write(buf); // lz-vcam reads framed RGBA like lz-ndi-send
     if (w !== c.width || h !== c.height) return; // ffmpeg outputs need the configured size
     const pixels = buf.subarray(16);
     if (this.stream.proc) this.stream.write(pixels);
-    if (this.v4l2.proc) this.v4l2.write(pixels);
+    if (this.v4l2.proc && process.platform === 'linux') this.v4l2.write(pixels);
   }
   status() { return { ndi: this.ndi.state, ndiB: this.ndiB.state, stream: this.stream.state, v4l2: this.v4l2.state }; }
   stopAll() { for (const s of this.all()) s.stop(); }
@@ -164,4 +167,4 @@ function writePart(res, jpg) {
   res.write(jpg); res.write('\r\n');
 }
 
-module.exports = { Sinks, NetworkInput, probeNdi, hasFfmpeg, writePart };
+module.exports = { Sinks, NetworkInput, probeNdi, hasFfmpeg, writePart, helperPath };
