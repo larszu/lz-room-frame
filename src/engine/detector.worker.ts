@@ -104,6 +104,19 @@ async function run(q: DetectRequest): Promise<DetectResult> {
   // two body boxes around the same person (nested detections) find the same face: keep one
   const unique = people.filter((p, i) => !p.head || !people.some((q, j) => j !== i && q.head && iou(p.head!, q.head) > 0.35 && (q.score > p.score || (q.score === p.score && j < i))));
   people.length = 0; people.push(...unique);
+  // close to the camera (webcam, head and shoulders) the person detector often finds nobody
+  // or no head: faces in the whole picture fill both gaps
+  const fs = crop(src, { x: 0, y: 0, w: src.width, h: src.height }, 640);
+  for (const d of face.detect(scratch).detections) {
+    const b = d.boundingBox; if (!b) continue;
+    const f = { x: b.originX * fs, y: b.originY * fs, w: b.width * fs, h: b.height * fs };
+    const head = { x: f.x - f.w * 0.08, y: f.y - f.h * 0.32, w: f.w * 1.16, h: f.h * 1.36 };
+    if (people.some((p) => p.head && iou(p.head, head) > 0.2)) continue;
+    const owner = people.find((p) => !p.head && head.x + head.w / 2 > p.body.x && head.x + head.w / 2 < p.body.x + p.body.w && head.y >= p.body.y - head.h && head.y < p.body.y + p.body.h * 0.5);
+    if (owner) { owner.head = head; continue; }
+    const bw = head.w * 3, bh = Math.min(src.height - head.y, head.h * 4);
+    people.push({ body: { x: head.x + head.w / 2 - bw / 2, y: head.y, w: bw, h: Math.max(head.h, bh) }, head, score: d.categories[0]?.score ?? 0.5 });
+  }
   const toSrc = (r: Rect): Rect => ({ x: r.x / k, y: r.y / k, w: r.w / k, h: r.h / k });
   const dets = people.map((p) => ({ ...p, body: toSrc(p.body), head: p.head && toSrc(p.head) }));
 
