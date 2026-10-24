@@ -42,7 +42,8 @@ export function fitAspect(r: Rect, aspect: number, W: number, H: number): Rect {
   if (w > W) { w = W; h = w / aspect; }
   if (h > H) { h = H; w = h * aspect; }
   const x = clamp(cx(r) - w / 2, 0, W - w);
-  const y = clamp(cy(r) - h / 2, 0, H - h);
+  // a crop that had to shrink (narrow source) keeps its upper part, where the head is
+  const y = clamp(h < r.h ? r.y + (r.h - h) * 0.15 : cy(r) - h / 2, 0, H - h);
   return { x, y, w, h };
 }
 
