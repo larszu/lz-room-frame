@@ -145,14 +145,13 @@ int wmain(int argc, wchar_t** argv) {
       lastTry = GetTickCount64();
       map = OpenFileMappingW(FILE_MAP_WRITE, FALSE, LZ_VCAM_MAPPING);
       if (map) mem = (LzVcamShared*)MapViewOfFile(map, FILE_MAP_WRITE, 0, 0, sizeof(LzVcamShared));
-      if (mem) fprintf(stderr, "camera memory connected\n");
-      else if (++misses % 10 == 1) fprintf(stderr, "waiting for camera memory (%lu)\n", GetLastError());
+      if (!mem && ++misses % 120 == 1) fprintf(stderr, "waiting for camera memory (%lu)\n", GetLastError());
     }
     if (!mem) continue;
     scaleInto(mem->bgra, buf.data(), w, h);
     mem->width = LZ_VCAM_W; mem->height = LZ_VCAM_H; mem->magic = LZ_VCAM_MAGIC;
     mem->stamp = (LONGLONG)GetTickCount64();
-    if (InterlockedIncrement(&mem->seq) % 60 == 1) fprintf(stderr, "frames written: %ld\n", mem->seq);
+    InterlockedIncrement(&mem->seq);
   }
   if (mem) UnmapViewOfFile(mem);
   if (map) CloseHandle(map);
