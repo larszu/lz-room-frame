@@ -44,7 +44,7 @@
 - **Steuerung:** TCP 4198 (ein Befehl pro Zeile), HTTP und WebSocket auf 4197, eine Web-Fernbedienung für Touchpanels. Dazu ein Q-SYS-Plugin und Crestron-Beispiele (`docs/integrations`).
 - **Raumrechner:** Die App startet mit dem System, auf Wunsch versteckt im Tray, und öffnet Eingang, Szene und Ausgänge wieder.
 
-Die Erkennung läuft lokal in einem Worker (MediaPipe EfficientDet-Lite0 + BlazeFace, GPU mit CPU-Rückfall). Es ist keine Cloud beteiligt.
+Die Erkennung läuft lokal in einem Worker: RTMO-s findet Personen samt Körperpunkten, so wird der Kopf auch bei halbem Gesicht am Bildrand, im Profil und von hinten gefunden. OSNet erkennt eine Person wieder, die zurückkommt (gleiche Kachel, gleicher Name). ONNX Runtime mit WebGPU, CPU-Rückfall. Es ist keine Cloud beteiligt.
 
 ## Aus dem Quellcode bauen
 

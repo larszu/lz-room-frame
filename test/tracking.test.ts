@@ -3,6 +3,7 @@ import { ssBoxFor, toRaw, FRAME_W } from '../src/engine/atem';
 import { DEFAULT_PTZ, ptzAim, ptzDrive, viscaPackets } from '../src/engine/ptz';
 import type { Person } from '../src/engine/types';
 import { Tracker } from '../src/engine/tracker';
+import { headFromKeypoints } from '../src/engine/pose';
 
 const W = 1920, H = 1080;
 const person = (x: number, y: number, h = 100): Person => ({ id: 1, body: { x, y, w: h, h: h * 4 }, head: { x, y, w: h * 0.8, h }, faceSeen: true, firstSeen: 0, lastSeen: 0, hits: 3, speaking: 0 });
@@ -86,5 +87,49 @@ describe('Tracker at the picture edge', () => {
     for (let i = 0; i < 20 && t.confirmed().length; i++, now += 100) t.update([], now, 3, 1920, 1080);
     expect(t.confirmed()).toHaveLength(0);
     expect(now).toBeLessThan(2800);
+  });
+});
+
+describe('Tracker re-identification', () => {
+  const unit = (seed: number) => { const v = new Float32Array(8); v[seed % 8] = 1; v[(seed + 1) % 8] = 0.3; const l = Math.hypot(...v); return v.map((x) => x / l); };
+  const det = (x: number, emb: Float32Array) => ({ body: { x, y: 100, w: 200, h: 500 }, head: { x: x + 60, y: 110, w: 80, h: 100 }, score: 0.9, emb });
+
+  it('gives a person who comes back their id and label', () => {
+    const t = new Tracker();
+    for (let now = 0; now < 500; now += 100) t.update([det(800, unit(1))], now, 1, 1920, 1080);
+    const id = t.confirmed()[0].id; t.confirmed()[0].label = 'Anna';
+    for (let now = 500; now < 3000; now += 100) t.update([], now, 1, 1920, 1080);
+    expect(t.confirmed()).toHaveLength(0);
+    t.update([det(300, unit(1))], 3000, 1, 1920, 1080);
+    expect(t.confirmed()[0]).toMatchObject({ id, label: 'Anna' });
+  });
+
+  it('gives someone who looks different a new id', () => {
+    const t = new Tracker();
+    for (let now = 0; now < 500; now += 100) t.update([det(800, unit(1))], now, 1, 1920, 1080);
+    const id = t.confirmed()[0].id;
+    for (let now = 500; now < 3000; now += 100) t.update([], now, 1, 1920, 1080);
+    for (let now = 3000; now < 3300; now += 100) t.update([det(300, unit(5))], now, 1, 1920, 1080);
+    expect(t.confirmed()[0].id).not.toBe(id);
+  });
+});
+
+describe('head from RTMO keypoints', () => {
+  const kp = (pts: [number, number, number][]): [number, number, number][] => [...pts, ...Array.from({ length: 17 - pts.length }, () => [0, 0, 0] as [number, number, number])];
+
+  it('places the head around the face points (webcam, frontal)', () => {
+    const h = headFromKeypoints(kp([[1048, 1016, 0.96], [1179, 858, 0.99], [915, 865, 1], [1342, 768, 0.63], [757, 782, 0.87]]))!;
+    expect(h.x + h.w / 2).toBeGreaterThan(950); expect(h.x + h.w / 2).toBeLessThan(1150);
+    expect(h.w).toBeGreaterThan(550); expect(h.w).toBeLessThan(800);
+    expect(h.y).toBeLessThan(858);
+  });
+
+  it('finds a half face at the picture edge (nose and one eye)', () => {
+    const h = headFromKeypoints(kp([[885, 934, 0.82], [954, 843, 0.25], [858, 828, 0.72], [1076, 784, 0.01], [824, 792, 0.05]]));
+    expect(h).not.toBeNull();
+  });
+
+  it('gives no head without sure face points', () => {
+    expect(headFromKeypoints(kp([[0, 0, 0.1], [0, 0, 0.1], [0, 0, 0.2], [0, 0, 0], [0, 0, 0]]))).toBeNull();
   });
 });

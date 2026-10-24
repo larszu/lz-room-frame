@@ -44,7 +44,7 @@
 - **Control:** TCP 4198 (one command per line), HTTP and WebSocket 4197, a web remote for touch panels, a Q-SYS plugin and Crestron examples (`docs/integrations`).
 - **Room PC:** start with the system, start hidden in the tray, and come back with the last input, scene and outputs.
 
-Detection runs locally in a worker (MediaPipe EfficientDet-Lite0 + BlazeFace, GPU with CPU fallback). No cloud is involved.
+Detection runs locally in a worker: RTMO-s finds people with their body keypoints, so heads are found from half faces at the picture edge, in profile and from behind. OSNet recognises a person who comes back (same tile, same name). ONNX Runtime with WebGPU, CPU fallback. No cloud is involved.
 
 ## Screenshots
 
