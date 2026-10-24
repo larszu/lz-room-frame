@@ -24,7 +24,7 @@ function getModels(base: string) {
     factory = new Function(`${glue}\nreturn ModuleFactory;`)();
     const fileset = { wasmLoaderPath: '', wasmBinaryPath: `${base}mediapipe/vision_wasm_internal.wasm` };
     const make = async (delegate: 'GPU' | 'CPU') => ({
-      obj: (arm(), await ObjectDetector.createFromOptions(fileset, { baseOptions: { modelAssetPath: `${base}models/efficientdet_lite0.tflite`, delegate }, runningMode: 'IMAGE', scoreThreshold: 0.3, maxResults: 25, categoryAllowlist: ['person'] })),
+      obj: (arm(), await ObjectDetector.createFromOptions(fileset, { baseOptions: { modelAssetPath: `${base}models/efficientdet_lite0.tflite`, delegate }, runningMode: 'IMAGE', scoreThreshold: 0.15, maxResults: 25, categoryAllowlist: ['person'] })),
       face: (arm(), await FaceDetector.createFromOptions(fileset, { baseOptions: { modelAssetPath: `${base}models/blaze_face_short_range.tflite`, delegate }, runningMode: 'IMAGE', minDetectionConfidence: 0.45 })),
       delegate, fileset,
     });
@@ -106,9 +106,10 @@ async function run(q: DetectRequest): Promise<DetectResult> {
   // two body boxes around the same person (nested detections) find the same face: keep one
   const unique = people.filter((p, i) => !p.head || !people.some((q, j) => j !== i && q.head && iou(p.head!, q.head) > 0.35 && (q.score > p.score || (q.score === p.score && j < i))));
   // without a face a box needs more certainty, and close to the camera (big box) a real
-  // person shows a face: big faceless boxes are mostly furniture
-  const sure = unique.filter((p) => p.head || (p.score >= 0.4 && (p.body.h < src.height * 0.5 || p.score >= 0.85)));
-  people.length = 0; people.push(...sure);
+  // person shows a face: big faceless boxes are mostly furniture. Unsure boxes are kept as
+  // `low`: they only continue a tracked person (a half person at the picture edge)
+  for (const p of unique) if (!p.head && (p.score < 0.4 || (p.body.h >= src.height * 0.5 && p.score < 0.85))) p.low = true;
+  people.length = 0; people.push(...unique);
   // close to the camera (webcam, head and shoulders) the person detector often finds nobody
   // or no head: faces in the whole picture fill both gaps
   const fs = crop(src, { x: 0, y: 0, w: src.width, h: src.height }, 640);

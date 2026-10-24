@@ -3,7 +3,11 @@
 export interface Rect { x: number; y: number; w: number; h: number }
 
 /** One detection of the current picture: the person's body box and, if found, the head. */
-export interface Detection { body: Rect; head: Rect | null; score: number }
+export interface Detection {
+  body: Rect; head: Rect | null; score: number;
+  /** unsure (low score, faceless furniture-like box): may continue a tracked person, never starts one */
+  low?: boolean;
+}
 
 /** A tracked person with a stable id. */
 export interface Person {
@@ -15,6 +19,10 @@ export interface Person {
   firstSeen: number;
   lastSeen: number;
   hits: number;
+  /** head centre speed in px/ms, for the prediction while the person is not detected */
+  vx?: number; vy?: number;
+  /** time of the last prediction step while not detected */
+  predicted?: number;
   /** 0…1, how sure we are that this person is speaking right now */
   speaking: number;
   /** a name given in the UI or by the control API */
