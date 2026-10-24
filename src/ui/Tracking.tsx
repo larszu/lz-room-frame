@@ -39,7 +39,7 @@ export function PtzCard() {
       </div>
       <p className="muted" style={{ margin: 0 }}>Sony, Panasonic (VISCA-Modus), BirdDog, Avonic: UDP 52381. PTZOptics, Lumens, Marshall, AVer: TCP 5678 oder UDP 1259.</p>
       <Field label="Folgen"><Seg label="Folgen" value={p.target} onChange={(v) => set((x) => { x.target = v; })} options={[{ value: 'main', label: 'Hauptperson' }, { value: 'group', label: 'Gruppe' }]} /></Field>
-      <Field label="Bildgröße"><Seg label="Bildgröße PTZ" value={p.shot} onChange={(v: Shot) => set((x) => { x.shot = v; })} options={(Object.keys(SHOT_LABEL) as Shot[]).map((k) => ({ value: k, label: SHOT_LABEL[k] }))} /></Field>
+      <Field label="Einstellungsgröße"><Seg label="Einstellungsgröße PTZ" value={p.shot} onChange={(v: Shot) => set((x) => { x.shot = v; })} options={(Object.keys(SHOT_LABEL) as Shot[]).map((k) => ({ value: k, label: SHOT_LABEL[k] }))} /></Field>
       <Slider label="Ruhezone" value={p.deadband} min={0.02} max={0.3} step={0.01} format={pct} onChange={(v) => set((x) => { x.deadband = v; })} />
       <Slider label="Reaktion" value={p.gain} min={0.2} max={2} step={0.1} format={(v) => v.toFixed(1)} onChange={(v) => set((x) => { x.gain = v; })} />
       <Slider label="Höchstgeschwindigkeit" value={p.maxSpeed} min={0.1} max={1} step={0.05} format={pct} onChange={(v) => set((x) => { x.maxSpeed = v; })} />

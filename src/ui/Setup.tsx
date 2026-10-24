@@ -44,8 +44,8 @@ export function Setup({ go }: { go: (v: string) => void }) {
       </Step>
 
       <Step n={2} title="Bild" done={!!e.source.width}>
-        <Field label="Wie nah">
-          <Seg label="Bildgröße" value={shots.includes(f.shot) ? f.shot : 'mcu'} onChange={(v: Shot) => e.setFraming({ shot: v })} options={shots.map((k) => ({ value: k, label: SHOT_LABEL[k] }))} />
+        <Field label="Einstellungsgröße">
+          <Seg label="Einstellungsgröße" value={shots.includes(f.shot) ? f.shot : 'mcu'} onChange={(v: Shot) => e.setFraming({ shot: v })} options={shots.map((k) => ({ value: k, label: SHOT_LABEL[k] }))} />
         </Field>
         <Field label="Wie schnell die Kamera folgt">
           <Seg label="Geschwindigkeit" value={f.speed} onChange={(v: Speed) => e.setFraming({ speed: v })} options={[{ value: 'slow', label: 'Ruhig' }, { value: 'normal', label: 'Normal' }, { value: 'fast', label: 'Schnell' }]} />

@@ -8,7 +8,7 @@ import type { Framing, Person, Rect, Shot, Speed } from './types';
 /** Crop height as a multiple of the head height, per shot size. */
 export const SHOT_FACTOR: Record<Shot, number> = { close: 2.4, mcu: 3.6, medium: 5, cowboy: 7, wide: 10 };
 
-export const SHOT_LABEL: Record<Shot, string> = { close: 'Nah (Kopf)', mcu: 'Brustbild', medium: 'Halbnah', cowboy: 'Amerikanisch', wide: 'Halbtotale' };
+export const SHOT_LABEL: Record<Shot, string> = { close: 'Groß', mcu: 'Nah', medium: 'Halbnah', cowboy: 'Amerikanisch', wide: 'Halbtotale' };
 
 /** Spring stiffness (rad/s) per speed. */
 export const SPEED_OMEGA: Record<Speed, number> = { slow: 1.6, normal: 3.2, fast: 6.5 };
