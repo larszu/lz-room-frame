@@ -33,6 +33,7 @@
 
 
 - **Any input, any resolution:** USB/UVC cameras, HDMI and SDI capture cards, IP and PTZ cameras over RTSP/SRT/RTMP, video files. The app asks for the most the device offers; output size is free (16:9, 9:16, square, 4K …).
+- **Three areas:** *Live* (picture, scenes, camera off, hold), *Set up* (camera, picture, output, room in four steps, rare options folded away) and *Pro* (scenes in detail, layouts, all outputs, control).
 - **Framing like AI PTZ cameras:** modes *overview, group, tiles, speaker, presenter*; shot sizes from close-up to wide; headroom, group margin, dead band, speed, transition (smooth, fade, cut), hold time and a sharpness guard that never enlarges the camera picture beyond a set factor.
 - **Layouts that follow the head count:** grid, grid with centre overview (as in the "7 tiles with centre view"), speaker large with strip, overview with strip. Custom layouts can be drawn on a 12 × 12 grid and assigned to a head count or fixed per scene, e.g. *group large + close-up as picture-in-picture*.
 - **Room:** room boundary, exclusion zones (glass walls, doors, screens) and a minimum head size.

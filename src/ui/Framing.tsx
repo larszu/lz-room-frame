@@ -4,7 +4,7 @@ import { SHOT_LABEL } from '../engine/framing';
 import { LAYOUT_TEMPLATES, STYLE_LABEL } from '../engine/layouts';
 import type { Accuracy, SpeakerSource } from '../engine/settings';
 import type { LayoutStyle, Mode, Shot, Speed, Transition } from '../engine/types';
-import { Card, Field, pct, Seg, Slider, Toggle } from './controls';
+import { Card, Field, More, pct, Seg, Slider, Toggle } from './controls';
 import { InputPreview, type DrawMode } from './InputPreview';
 import { MODE_LABEL } from './Live';
 import { useEngine } from './useEngine';
@@ -19,7 +19,6 @@ export function Framing() {
   const f = e.settings.framing;
   const s = e.settings;
   const active = s.scenes.find((x) => x.id === s.activeScene);
-  const [draw, setDraw] = useState<DrawMode>(null);
 
   const saveNew = () => {
     const name = `Szene ${s.scenes.length + 1}`;
@@ -96,26 +95,7 @@ export function Framing() {
       </div>
 
       <div className="cols">
-        <Card title="Raum" action={<span className="muted">{e.persons.length} erkannt</span>}>
-          <p className="muted" style={{ margin: 0 }}>Raumgrenze und Ausschlusszonen halten Personen hinter Glaswänden, im Flur oder auf Bildschirmen aus dem Bild. Ziehen Sie dazu ein Rechteck im Kamerabild.</p>
-          <Seg label="Zeichnen" value={draw ?? 'none'} onChange={(v) => setDraw(v === 'none' ? null : (v as DrawMode))} options={[
-            { value: 'none', label: 'Ansehen' }, { value: 'boundary', label: 'Raumgrenze' }, { value: 'exclusion', label: 'Ausschlusszone' }, { value: 'speaker', label: 'Sprecherzone' },
-          ]} />
-          <InputPreview draw={draw} onRect={(r) => e.update((st) => {
-            if (draw === 'boundary') st.zones.boundary = r;
-            else if (draw === 'exclusion') st.zones.exclusions.push(r);
-            else if (draw === 'speaker') st.zones.speakerZones.push({ name: `Zone ${st.zones.speakerZones.length + 1}`, x0: r.x, x1: r.x + r.w });
-          })} />
-          <div className="row">
-            {(s.zones.boundary.w < 1 || s.zones.boundary.h < 1) && <button className="btn" onClick={() => e.update((st) => { st.zones.boundary = { x: 0, y: 0, w: 1, h: 1 }; })}><X size={16} />Raumgrenze aufheben</button>}
-            {s.zones.exclusions.map((_, i) => <button key={i} className="btn" onClick={() => e.update((st) => { st.zones.exclusions.splice(i, 1); })}><X size={16} />Ausschluss {i + 1}</button>)}
-          </div>
-          <Slider label="Mindestgröße des Kopfs" value={s.zones.minHead} min={0} max={0.12} step={0.005} format={pct} onChange={(v) => e.update((st) => { st.zones.minHead = v; })} hint="Anteil an der Bildhöhe. Ignoriert Personen weit hinten oder draußen." />
-          <Field label="Erkennung" hint="Genauer findet auch kleine Personen im 4K-Bild, braucht aber mehr Rechenzeit.">
-            <Seg label="Erkennung" value={s.accuracy} onChange={(v: Accuracy) => e.update((st) => { st.accuracy = v; })} options={[{ value: 'fast', label: 'Schnell' }, { value: 'accurate', label: 'Genau' }, { value: 'max', label: 'Großer Raum' }]} />
-          </Field>
-          <Slider label="Erkennungen pro Sekunde" value={s.detectHz} min={1} max={15} step={1} onChange={(v) => e.update((st) => { st.detectHz = v; })} />
-        </Card>
+        <RoomCard />
 
         <Card title="Sprecher">
           <Field label="Wer spricht, erkennt …" hint={{
@@ -144,4 +124,39 @@ export function Framing() {
       </div>
     </div>
   );
+}
+
+/** Room boundary and exclusion zones, drawn in the camera picture. */
+export function RoomCard({ simple }: { simple?: boolean }) {
+  const e = useEngine();
+  const s = e.settings;
+  const [draw, setDraw] = useState<DrawMode>(null);
+  const zones: { value: string; label: string }[] = [{ value: 'none', label: 'Nur ansehen' }, { value: 'boundary', label: 'Raumgrenze ziehen' }, { value: 'exclusion', label: 'Bereich ausschließen' }];
+  if (!simple) zones.push({ value: 'speaker', label: 'Sprecherzone' });
+  const tuning = (
+    <>
+      <Slider label="Mindestgröße des Kopfs" value={s.zones.minHead} min={0} max={0.12} step={0.005} format={pct} onChange={(v) => e.update((st) => { st.zones.minHead = v; })} hint="Anteil an der Bildhöhe. Ignoriert Personen weit hinten oder draußen." />
+      <Field label="Erkennung" hint="Genauer findet auch kleine Personen im 4K-Bild, braucht aber mehr Rechenzeit.">
+        <Seg label="Erkennung" value={s.accuracy} onChange={(v: Accuracy) => e.update((st) => { st.accuracy = v; })} options={[{ value: 'fast', label: 'Schnell' }, { value: 'accurate', label: 'Genau' }, { value: 'max', label: 'Großer Raum' }]} />
+      </Field>
+      <Slider label="Erkennungen pro Sekunde" value={s.detectHz} min={1} max={15} step={1} onChange={(v) => e.update((st) => { st.detectHz = v; })} />
+    </>
+  );
+  const body = (
+    <>
+      <p className="muted" style={{ margin: 0 }}>Personen hinter Glaswänden, im Flur oder auf Bildschirmen bleiben draußen: Rechteck ins Kamerabild ziehen.</p>
+      <Seg label="Zeichnen" value={draw ?? 'none'} onChange={(v) => setDraw(v === 'none' ? null : (v as DrawMode))} options={zones} />
+      <InputPreview draw={draw} onRect={(r) => e.update((st) => {
+        if (draw === 'boundary') st.zones.boundary = r;
+        else if (draw === 'exclusion') st.zones.exclusions.push(r);
+        else if (draw === 'speaker') st.zones.speakerZones.push({ name: `Zone ${st.zones.speakerZones.length + 1}`, x0: r.x, x1: r.x + r.w });
+      })} />
+      <div className="row">
+        {(s.zones.boundary.w < 1 || s.zones.boundary.h < 1) && <button className="btn" onClick={() => e.update((st) => { st.zones.boundary = { x: 0, y: 0, w: 1, h: 1 }; })}><X size={16} />Raumgrenze aufheben</button>}
+        {s.zones.exclusions.map((_, i) => <button key={i} className="btn" onClick={() => e.update((st) => { st.zones.exclusions.splice(i, 1); })}><X size={16} />Ausschluss {i + 1} entfernen</button>)}
+      </div>
+      {simple ? <More label="Erkennung feinstellen">{tuning}</More> : tuning}
+    </>
+  );
+  return simple ? body : <Card title="Raum" action={<span className="muted">{e.persons.length} erkannt</span>}>{body}</Card>;
 }

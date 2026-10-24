@@ -60,3 +60,13 @@ export function SinkState({ s }: { s?: { on: boolean; ok: boolean; message: stri
 }
 
 export const pct = (v: number) => `${Math.round(v * 100)} %`;
+
+/** Rarely needed options, closed by default. */
+export function More({ label = 'Mehr Optionen', children }: { label?: string; children: ReactNode }) {
+  return (
+    <details className="more">
+      <summary>{label}</summary>
+      <div className="more-body">{children}</div>
+    </details>
+  );
+}

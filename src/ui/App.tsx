@@ -1,24 +1,20 @@
-import { Cable, LayoutGrid, Monitor, Moon, Radio, ScanFace, Sun, SunMoon } from 'lucide-react';
+import { Monitor, Moon, SlidersHorizontal, Sun, SunMoon, Wrench } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import signetNavy from '../brand/lzm_signet_navy_1c.svg?raw';
 import { desktop } from '../desktop';
 import { engine } from '../engine/engine';
-import { Control } from './Control';
 import { Seg } from './controls';
-import { Framing } from './Framing';
-import { Layouts } from './Layouts';
 import { Live } from './Live';
-import { Outputs } from './Outputs';
+import { Pro } from './Pro';
+import { Setup } from './Setup';
 
-type View = 'live' | 'framing' | 'layouts' | 'outputs' | 'control';
+type View = 'live' | 'setup' | 'pro';
 type Theme = 'auto' | 'light' | 'dark';
 
 const NAV: { id: View; label: string; icon: typeof Monitor }[] = [
   { id: 'live', label: 'Live', icon: Monitor },
-  { id: 'framing', label: 'Framing', icon: ScanFace },
-  { id: 'layouts', label: 'Layouts', icon: LayoutGrid },
-  { id: 'outputs', label: 'Ausgänge', icon: Cable },
-  { id: 'control', label: 'Steuerung', icon: Radio },
+  { id: 'setup', label: 'Einrichten', icon: Wrench },
+  { id: 'pro', label: 'Profi', icon: SlidersHorizontal },
 ];
 
 // signet in kit colours only: navy on light, off-white on dark, dot always tally red
@@ -29,7 +25,10 @@ const signet = signetNavy
 let started = false;
 
 export function App() {
-  const [view, setView] = useState<View>(() => { try { return (localStorage.getItem('lzrf.view') as View) || 'live'; } catch { return 'live'; } });
+  const [view, setView] = useState<View>(() => {
+    // first start without a camera: begin with setting up
+    try { const v = localStorage.getItem('lzrf.view') as View; return NAV.some((n) => n.id === v) ? v : engine.settings.input.deviceId || localStorage.getItem('lzrf.view') ? 'live' : 'setup'; } catch { return 'live'; }
+  });
   const [theme, setTheme] = useState<Theme>(() => { try { return (localStorage.getItem('lzrf.theme') as Theme) || 'auto'; } catch { return 'auto'; } });
 
   useEffect(() => {
@@ -70,10 +69,8 @@ export function App() {
       </nav>
       <main className="main">
         {view === 'live' && <Live go={go} />}
-        {view === 'framing' && <Framing />}
-        {view === 'layouts' && <Layouts />}
-        {view === 'outputs' && <Outputs />}
-        {view === 'control' && <Control />}
+        {view === 'setup' && <Setup go={go} />}
+        {view === 'pro' && <Pro />}
       </main>
     </div>
   );

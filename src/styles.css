@@ -126,4 +126,27 @@
   .checklist li.done svg { color: var(--ok); }
   .progress { block-size: 6px; border-radius: var(--radius-full); background: var(--surface-2); overflow: hidden; }
   .progress > i { display: block; block-size: 100%; background: var(--accent); transition: inline-size var(--dur-3) var(--ease-spring); }
+
+  .stack { display: grid; gap: var(--space-4); min-inline-size: 0; align-content: start; }
+  .view.narrow { max-inline-size: 760px; }
+  .screen .empty { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: var(--space-3); color: #fff; text-align: center; padding: var(--space-4); }
+  .screen .empty p { margin: 0; opacity: .85; }
+  .screen:has(.empty) { aspect-ratio: 16 / 9; }
+  .screen:has(.empty) canvas { visibility: hidden; position: absolute; }
+  .scenes.big { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .scenes.big .scene { min-block-size: 92px; gap: 4px; font-size: 1rem; }
+  .scenes.big .scene svg { color: var(--accent); margin-block-end: 2px; }
+  .scenes.big .scene[aria-pressed="true"] svg { color: inherit; }
+  .actions .btn { flex: 1; min-block-size: 48px; }
+  .step > h2 { gap: var(--space-3); }
+  .step .num { inline-size: 28px; block-size: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); font-size: var(--fs-ui); font-weight: 700; flex: none; }
+  .step .num.done { background: var(--ok); color: #fff; }
+  .more { border-radius: var(--radius-m); background: var(--surface-2); }
+  .more > summary { cursor: pointer; padding: var(--space-2) var(--space-3); font-size: var(--fs-ui); font-weight: 600; color: var(--text-muted); min-block-size: 40px; display: flex; align-items: center; list-style: none; }
+  .more > summary::before { content: '›'; display: inline-block; margin-inline-end: var(--space-2); transition: transform var(--dur-1); }
+  .more[open] > summary::before { transform: rotate(90deg); }
+  .more > summary::-webkit-details-marker { display: none; }
+  .more-body { display: grid; gap: var(--space-3); padding: 0 var(--space-3) var(--space-3); }
+  .btn.link { padding: 0; min-block-size: 0; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; font-weight: 600; }
+  .note .btn.link { margin-block-start: var(--space-1); }
 }
