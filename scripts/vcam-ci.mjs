@@ -7,6 +7,8 @@ const bin = join('helpers', 'bin');
 console.log(execFileSync(join(bin, 'lz-vcam.exe'), ['--register']).toString());
 console.log('probe', execFileSync(join(bin, 'lz-vcam.exe'), ['--probe']).toString().trim());
 const feed = spawn(join(bin, 'lz-vcam.exe'), [], { stdio: ['pipe', 'inherit', 'inherit'] });
+feed.stdin.on('error', () => {});
+feed.on('exit', (c) => { if (c) { console.error(`lz-vcam exited ${c}`); process.exit(1); } });
 const w = 1280, h = 720, frame = Buffer.alloc(16 + w * h * 4);
 frame.write('LZRF', 0); frame.writeUInt32LE(w, 4); frame.writeUInt32LE(h, 8); frame.writeUInt32LE(30, 12);
 for (let i = 16; i < frame.length; i += 4) { frame[i] = 200; frame[i + 1] = 50; frame[i + 2] = 100; frame[i + 3] = 255; }

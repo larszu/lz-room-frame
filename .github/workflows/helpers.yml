@@ -13,5 +13,18 @@ jobs:
       - run: helpers\bin\lz-vcam.exe --probe
       - name: build test reader
         run: cl /nologo /EHsc /O2 /DUNICODE /D_UNICODE helpers\vcam\vcam-test.cpp /Fe:helpers\bin\vcam-test.exe /Fo:helpers\bin\vcam-test.obj /link mfplat.lib mf.lib mfreadwrite.lib mfuuid.lib ole32.lib
+      - name: allow camera access, start the Frame Server
+        shell: pwsh
+        run: |
+          foreach ($root in 'HKCU:', 'HKLM:') {
+            $k = "$root\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\webcam"
+            New-Item -Path "$k\NonPackaged" -Force | Out-Null
+            Set-ItemProperty -Path $k -Name Value -Value Allow
+            Set-ItemProperty -Path "$k\NonPackaged" -Name Value -Value Allow
+          }
+          Get-Service FrameServer, FrameServerMonitor -ErrorAction SilentlyContinue | Format-Table Name, Status, StartType
+          Set-Service FrameServer -StartupType Manual -ErrorAction SilentlyContinue
+          Start-Service FrameServer -ErrorAction SilentlyContinue
+          Get-Service FrameServer -ErrorAction SilentlyContinue | Format-Table Name, Status
       - name: end-to-end check
         run: node scripts/vcam-ci.mjs

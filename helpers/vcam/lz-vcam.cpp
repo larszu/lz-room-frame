@@ -117,7 +117,11 @@ int wmain(int argc, wchar_t** argv) {
   IMFVirtualCamera* cam = nullptr;
   HRESULT hr = create(MFVirtualCameraType_SoftwareCameraSource, MFVirtualCameraLifetime_Session, MFVirtualCameraAccess_CurrentUser, LZ_VCAM_NAME, LZ_VCAM_CLSID_STR, nullptr, 0, &cam);
   if (SUCCEEDED(hr)) hr = cam->Start(nullptr);
-  if (FAILED(hr)) { fprintf(stderr, "virtual camera: 0x%08lx\n", (unsigned long)hr); if (cam) cam->Release(); MFShutdown(); return 6; }
+  if (FAILED(hr)) {
+    if (hr == E_ACCESSDENIED) fprintf(stderr, "Kamerazugriff gesperrt: Windows-Einstellungen > Datenschutz > Kamera > Desktop-Apps erlauben\n");
+    else fprintf(stderr, "virtual camera: 0x%08lx\n", (unsigned long)hr);
+    if (cam) cam->Release(); MFShutdown(); return 6;
+  }
 
   _setmode(_fileno(stdin), _O_BINARY);
   std::vector<BYTE> buf;
