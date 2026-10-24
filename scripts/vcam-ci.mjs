@@ -1,6 +1,6 @@
 // CI end-to-end check of the Windows virtual camera: register, feed a solid colour like the
 // app does, read the camera like Teams would, compare.
-import { execFileSync, spawn } from 'node:child_process';
+import { execFile, execFileSync, spawn } from 'node:child_process';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
 
@@ -15,8 +15,8 @@ frame.write('LZRF', 0); frame.writeUInt32LE(w, 4); frame.writeUInt32LE(h, 8); fr
 for (let i = 16; i < frame.length; i += 4) { frame[i] = 200; frame[i + 1] = 50; frame[i + 2] = 100; frame[i + 3] = 255; }
 const timer = setInterval(() => { if (!feed.stdin.writableNeedDrain) feed.stdin.write(frame); }, 33);
 await new Promise((r) => setTimeout(r, 3000));
-let out = '';
-try { out = execFileSync(join(bin, 'vcam-test.exe'), { timeout: 60000 }).toString(); } catch (e) { out = String(e.stdout ?? e); }
+// asynchronously: a blocking call would stop the feeding while the camera is read
+const out = await new Promise((done) => execFile(join(bin, 'vcam-test.exe'), { timeout: 60000 }, (_e, stdout) => done(String(stdout))));
 console.log(out);
 try { console.log(readFileSync(join(process.env.ProgramData, 'LZ Room Frame', 'vcam.log'), 'utf8')); } catch (e) { console.log('no vcam.log', e.message); }
 clearInterval(timer); feed.stdin.end();
