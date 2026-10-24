@@ -385,7 +385,7 @@ export class Engine {
       dets = filterDetections(dets, this.settings.zones, W, H);
       this.lastDetections = dets;
       const lipScores = sp === 'auto' && res.mouths ? this.lips.update(prev, res.mouths, performance.now()) : new Map<number, number>();
-      const persons = this.tracker.update(dets, performance.now(), this.settings.framing.holdTime);
+      const persons = this.tracker.update(dets, performance.now(), this.settings.framing.holdTime, W, H);
       if (sp === 'auto') {
         const a = this.settings.speaker;
         fuseSpeaking(persons, lipScores, this.audioReading.voice, this.audioX, W, a.lipWeight, 0.12);

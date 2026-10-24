@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ssBoxFor, toRaw, FRAME_W } from '../src/engine/atem';
 import { DEFAULT_PTZ, ptzAim, ptzDrive, viscaPackets } from '../src/engine/ptz';
 import type { Person } from '../src/engine/types';
+import { Tracker } from '../src/engine/tracker';
 
 const W = 1920, H = 1080;
 const person = (x: number, y: number, h = 100): Person => ({ id: 1, body: { x, y, w: h, h: h * 4 }, head: { x, y, w: h * 0.8, h }, faceSeen: true, firstSeen: 0, lastSeen: 0, hits: 3, speaking: 0 });
@@ -56,5 +57,34 @@ describe('atem supersource box', () => {
     const r = toRaw(b);
     expect(r.size).toBe(1000);
     expect(Number.isInteger(r.cropLeft)).toBe(true);
+  });
+});
+
+describe('Tracker at the picture edge', () => {
+  const det = (x: number, w = 200, low = false) => ({ body: { x, y: 100, w, h: 500 }, head: low ? null : { x: x + 60, y: 110, w: 80, h: 100 }, score: 0.9, low });
+
+  it('unsure boxes never start a person but continue one', () => {
+    const t = new Tracker();
+    t.update([det(500, 200, true)], 0, 3, 1920, 1080);
+    t.update([det(500, 200, true)], 100, 3, 1920, 1080);
+    expect(t.confirmed()).toHaveLength(0);
+    t.update([det(500)], 200, 3, 1920, 1080);
+    t.update([det(500)], 300, 3, 1920, 1080);
+    t.update([det(505, 200, true)], 400, 3, 1920, 1080);
+    expect(t.confirmed()).toHaveLength(1);
+    expect(t.confirmed()[0].lastSeen).toBe(400);
+  });
+
+  it('keeps the size of a person cut by the edge and ends when they walk out', () => {
+    const t = new Tracker();
+    let x = 1500, now = 0;
+    for (; x <= 1720; x += 40, now += 100) t.update([det(x)], now, 3, 1920, 1080);
+    // half out: the detector sees only the part inside the picture, without a face
+    t.update([det(1800, 120, true)], now, 3, 1920, 1080); now += 100;
+    expect(t.confirmed()[0].body.w).toBeGreaterThan(180);
+    // nothing detected any more: the prediction carries them out well before holdTime
+    for (let i = 0; i < 20 && t.confirmed().length; i++, now += 100) t.update([], now, 3, 1920, 1080);
+    expect(t.confirmed()).toHaveLength(0);
+    expect(now).toBeLessThan(2800);
   });
 });
