@@ -1,91 +1,84 @@
-import { CircleCheck, Circle, EyeOff, Pause, Video } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Camera, EyeOff, LayoutGrid, Maximize, Mic, Pause, Play, Presentation, Users } from 'lucide-react';
 import { useEngine } from './useEngine';
 import { InputPreview, OutputPreview } from './InputPreview';
-import { Card, Seg } from './controls';
-import { SourcePicker } from './SourcePicker';
 import type { Mode } from '../engine/types';
 
 export const MODE_LABEL: Record<Mode, string> = { overview: 'Übersicht', group: 'Gruppe', people: 'Kacheln', speaker: 'Sprecher', presenter: 'Präsentator' };
+const MODE_ICON: Record<Mode, typeof Users> = { overview: Maximize, group: Users, people: LayoutGrid, speaker: Mic, presenter: Presentation };
+const MODE_HINT: Record<Mode, string> = {
+  overview: 'Ganzes Kamerabild',
+  group: 'Alle im Bild',
+  people: 'Jede Person eine Kachel',
+  speaker: 'Wer spricht',
+  presenter: 'Folgt einer Person',
+};
 
+/** The one view for running a meeting: the picture, the scenes, privacy. */
 export function Live({ go }: { go: (v: string) => void }) {
   const e = useEngine();
   const st = e.status();
   const s = e.settings;
   const anyOut = s.output.window.enabled || s.output.ndi.enabled || s.output.stream.enabled || s.output.v4l2.enabled;
-  const steps = [
-    { done: !!st.source.width, text: 'Kamera wählen', to: '' },
-    { done: st.persons > 0, text: 'Personen werden erkannt', to: 'framing' },
-    { done: s.activeScene !== 'tiles' || e.sceneDirty, text: 'Eine Szene ausprobieren', to: '' },
-    { done: anyOut, text: 'Ausgang einschalten (Fenster, NDI, Stream)', to: 'outputs' },
-  ];
-  const doneCount = steps.filter((x) => x.done).length;
-  const [hideSteps, setHideSteps] = useState(() => { try { return localStorage.getItem('lzrf.steps') === 'done'; } catch { return false; } });
-  useEffect(() => {
-    if (doneCount === steps.length && !hideSteps) {
-      const t = setTimeout(() => { setHideSteps(true); try { localStorage.setItem('lzrf.steps', 'done'); } catch { /* ignore */ } }, 2500);
-      return () => clearTimeout(t);
-    }
-  }, [doneCount, hideSteps, steps.length]);
+  const hasCam = !!st.source.width;
 
   return (
     <div className="view">
       <div className="live">
-        <div style={{ display: 'grid', gap: 'var(--space-4)', minInlineSize: 0 }}>
+        <div className="stack">
           <div className="screen">
             <OutputPreview />
-            <div className="badge row">
-              <span className={`pill${anyOut ? ' on' : ''}`}>{anyOut ? 'Ausgabe läuft' : 'Vorschau'}</span>
-              <span className="pill">{st.sceneName}{e.sceneDirty ? ' · geändert' : ''}</span>
-            </div>
-            <div className="stats">
-              <span className="pill">{st.persons} {st.persons === 1 ? 'Person' : 'Personen'}</span>
-              <span className="pill">{s.output.width}×{s.output.height} · {st.fps} fps</span>
-            </div>
-          </div>
-          <Card title="Szenen" action={
-            <div className="row">
-              <button className="btn danger" aria-pressed={e.privacy} onClick={() => e.exec(`privacy ${e.privacy ? 'off' : 'on'}`)}><EyeOff size={18} />Kamera aus</button>
-              <button className="btn" aria-pressed={e.director.frozen} onClick={() => e.exec(`freeze ${e.director.frozen ? 'off' : 'on'}`)}><Pause size={18} />{e.director.frozen ? 'Weiter' : 'Bild halten'}</button>
-            </div>
-          }>
-            <div className="scenes">
-              {s.scenes.map((sc, i) => (
-                <button key={sc.id} className="scene" aria-pressed={s.activeScene === sc.id} onClick={() => e.recallScene(sc.id)}>
-                  {sc.name}<small>{i + 1} · {MODE_LABEL[sc.framing.mode]}</small>
-                </button>
-              ))}
-            </div>
-            <div className="row">
-              <span className="muted">Modus</span>
-              <Seg label="Modus" value={s.framing.mode} onChange={(m) => e.setFraming({ mode: m })} options={(Object.keys(MODE_LABEL) as Mode[]).map((m) => ({ value: m, label: MODE_LABEL[m] }))} />
-            </div>
-          </Card>
-        </div>
-        <div style={{ display: 'grid', gap: 'var(--space-4)', minInlineSize: 0 }}>
-          <Card title="Kamera" action={<span className="muted">{st.source.width ? `${st.source.width}×${st.source.height}${st.source.fps ? ` · ${st.source.fps} fps` : ''}` : ''}</span>}>
-            <InputPreview />
-            {st.source.error && <div className="note err"><p>{st.source.error}</p></div>}
-            {!!st.source.width && st.source.width < 2560 && s.framing.mode === 'people' && (
-              <div className="note warn"><p>Unter 4K werden Kacheln schnell unscharf. Die Schärfegrenze zoomt dann weniger nah heran (Framing → Schärfegrenze).</p></div>
+            {!hasCam && (
+              <div className="empty">
+                <Camera size={32} />
+                <p>{st.source.error || 'Noch keine Kamera verbunden.'}</p>
+                <button className="btn primary" onClick={async () => { await e.openInput(); if (!e.source.width) go('setup'); }}>Kamera verbinden</button>
+                <button className="btn ghost link" style={{ color: '#fff' }} onClick={() => go('setup')}>Andere Kamera wählen</button>
+              </div>
             )}
-            <SourcePicker />
-          </Card>
-          {!hideSteps && (
-            <Card title={<>Erste Schritte <span className="muted">{doneCount} von {steps.length}</span></>}>
-              <div className="progress"><i style={{ inlineSize: `${(doneCount / steps.length) * 100}%` }} /></div>
-              <ul className="checklist">
-                {steps.map((x) => (
-                  <li key={x.text} className={x.done ? 'done' : ''}>
-                    {x.done ? <CircleCheck size={18} /> : <Circle size={18} />}
-                    {x.to && !x.done ? <button className="btn ghost" style={{ padding: 0, minBlockSize: 0 }} onClick={() => go(x.to)}>{x.text}</button> : x.text}
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          )}
-          <p className="muted row"><Video size={14} />Erkennung {st.detectMs} ms · {st.delegate || 'lädt …'}</p>
+            {hasCam && (
+              <div className="badge row">
+                <span className={`pill${anyOut ? ' on' : ''}`}>{anyOut ? 'Wird gesendet' : 'Nur Vorschau'}</span>
+                {e.privacy && <span className="pill on">Kamera aus</span>}
+                {e.director.frozen && <span className="pill">Bild gehalten</span>}
+              </div>
+            )}
+          </div>
+
+          <section aria-label="Bild wählen" className="scenes big">
+            {s.scenes.map((sc) => {
+              const Icon = MODE_ICON[sc.framing.mode];
+              return (
+                <button key={sc.id} className="scene" title={MODE_HINT[sc.framing.mode]} aria-pressed={s.activeScene === sc.id} onClick={() => e.recallScene(sc.id)}>
+                  <Icon size={22} strokeWidth={1.75} />
+                  <span>{sc.name}</span>
+                </button>
+              );
+            })}
+          </section>
+
+          <div className="row actions">
+            <button className="btn danger" aria-pressed={e.privacy} onClick={() => e.exec(`privacy ${e.privacy ? 'off' : 'on'}`)}>
+              {e.privacy ? <><Play size={18} />Kamera wieder an</> : <><EyeOff size={18} />Kamera aus</>}
+            </button>
+            <button className="btn" aria-pressed={e.director.frozen} onClick={() => e.exec(`freeze ${e.director.frozen ? 'off' : 'on'}`)}>
+              {e.director.frozen ? <><Play size={18} />Weiter folgen</> : <><Pause size={18} />Bild anhalten</>}
+            </button>
+          </div>
         </div>
+
+        <aside className="stack">
+          <section className="card">
+            <h2><span className="grow">Kamera</span><span className="muted">{st.persons === 1 ? '1 Person' : `${st.persons} Personen`}</span></h2>
+            <InputPreview outlines={false} />
+            <p className="muted" style={{ margin: 0 }}>{hasCam ? st.source.label : 'Nicht verbunden'}</p>
+            {!anyOut && hasCam && (
+              <div className="note">
+                <p>Das Bild wird noch nirgends hin gesendet.</p>
+                <button className="btn ghost link" onClick={() => go('setup')}>Ausgabe einrichten</button>
+              </div>
+            )}
+          </section>
+        </aside>
       </div>
     </div>
   );

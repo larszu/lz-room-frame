@@ -1,7 +1,7 @@
 import { FolderOpen, Play, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { desktop } from '../desktop';
-import { Field, Seg, Toggle } from './controls';
+import { Field, More, Seg, Toggle } from './controls';
 import { useEngine } from './useEngine';
 
 const RES = [
@@ -12,7 +12,7 @@ const RES = [
   { v: '1280x720', label: '1280 × 720' },
 ];
 
-export function SourcePicker() {
+export function SourcePicker({ simple }: { simple?: boolean }) {
   const e = useEngine();
   const inp = e.settings.input;
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
@@ -29,11 +29,30 @@ export function SourcePicker() {
   const open = async () => { await e.openInput(); refresh(); };
   const set = (patch: Partial<typeof inp>) => e.update((s) => { s.input = { ...s.input, ...patch }; });
 
+  const kindSeg = (
+    <Seg label="Art des Eingangs" value={inp.kind} onChange={(k) => set({ kind: k })} options={[
+      { value: 'device', label: 'Kamera / Capture' }, { value: 'network', label: 'Netzwerk' }, { value: 'file', label: 'Videodatei' },
+    ]} />
+  );
+  const resolution = (
+    <div className="cols" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
+      <Field label="Auflösung">
+        <select value={`${inp.width}x${inp.height}`} onChange={(ev) => { const [w, h] = ev.target.value.split('x').map(Number); set({ width: w, height: h }); }}>
+          {RES.map((r) => <option key={r.v} value={r.v}>{r.label}</option>)}
+        </select>
+      </Field>
+      <Field label="Bildrate">
+        <select value={inp.fps} onChange={(ev) => set({ fps: Number(ev.target.value) })}>
+          {[24, 25, 30, 50, 60].map((f) => <option key={f} value={f}>{f} fps</option>)}
+        </select>
+      </Field>
+    </div>
+  );
+  const mirrorToggle = <Toggle label="Spiegeln" hint="Für Kameras, die über Kopf oder spiegelverkehrt liefern" checked={inp.mirror} onChange={(v) => set({ mirror: v })} />;
+
   return (
     <div style={{ display: 'grid', gap: 'var(--space-3)' }}>
-      <Seg label="Art des Eingangs" value={inp.kind} onChange={(k) => set({ kind: k })} options={[
-        { value: 'device', label: 'Kamera / Capture' }, { value: 'network', label: 'Netzwerk' }, { value: 'file', label: 'Videodatei' },
-      ]} />
+      {!simple && kindSeg}
       {inp.kind === 'device' && (
         <>
           <Field label="Gerät" hint="USB-Kameras, HDMI- und SDI-Capture-Karten (UVC, Magewell, Blackmagic, AJA …) erscheinen hier.">
@@ -45,18 +64,7 @@ export function SourcePicker() {
               <button className="btn icon" onClick={refresh} title="Geräte neu suchen" aria-label="Geräte neu suchen"><RefreshCw size={18} /></button>
             </div>
           </Field>
-          <div className="cols" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
-            <Field label="Auflösung">
-              <select value={`${inp.width}x${inp.height}`} onChange={(ev) => { const [w, h] = ev.target.value.split('x').map(Number); set({ width: w, height: h }); }}>
-                {RES.map((r) => <option key={r.v} value={r.v}>{r.label}</option>)}
-              </select>
-            </Field>
-            <Field label="Bildrate">
-              <select value={inp.fps} onChange={(ev) => set({ fps: Number(ev.target.value) })}>
-                {[24, 25, 30, 50, 60].map((f) => <option key={f} value={f}>{f} fps</option>)}
-              </select>
-            </Field>
-          </div>
+          {!simple && resolution}
         </>
       )}
       {inp.kind === 'network' && (
@@ -72,9 +80,9 @@ export function SourcePicker() {
           </div>
         </Field>
       )}
-      <Toggle label="Spiegeln" hint="Für Kameras, die über Kopf oder spiegelverkehrt liefern" checked={inp.mirror} onChange={(v) => set({ mirror: v })} />
+      {simple ? <More label="Andere Quelle, Auflösung, Spiegeln">{kindSeg}{inp.kind === 'device' && resolution}{mirrorToggle}</More> : mirrorToggle}
       <div className="row end">
-        <button className="btn primary" onClick={() => { if (inp.kind === 'network') set({ url }); open(); }}><Play size={18} />{e.source.width ? 'Eingang neu öffnen' : 'Eingang öffnen'}</button>
+        <button className="btn primary" onClick={() => { if (inp.kind === 'network') set({ url }); open(); }}><Play size={18} />{e.source.width ? 'Kamera neu verbinden' : 'Kamera verbinden'}</button>
       </div>
     </div>
   );

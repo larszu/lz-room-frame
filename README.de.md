@@ -33,6 +33,7 @@
 
 
 - **Jeder Eingang, jede Auflösung:** USB/UVC-Kameras, HDMI- und SDI-Capture-Karten, IP- und PTZ-Kameras per RTSP/SRT/RTMP, Videodateien. Die App fordert das Maximum des Geräts an; das Ausgabeformat ist frei (16:9, 9:16, quadratisch, 4K …).
+- **Drei Bereiche:** *Live* (Bild, Szenen, Kamera aus, Bild anhalten), *Einrichten* (Kamera, Bild, Ausgabe und Raum in vier Schritten, Seltenes eingeklappt) und *Profi* (Szenen im Detail, Layouts, alle Ausgänge, Steuerung).
 - **Framing wie bei KI-PTZ-Kameras:** Modi *Übersicht, Gruppe, Kacheln, Sprecher, Präsentator*. Dazu kommen Bildgrößen von Nah bis Halbtotale, Kopfluft, Rand um die Gruppe, Ruhezone, Geschwindigkeit und Übergang (weich, Blende, Schnitt). Außerdem eine Haltezeit und eine Schärfegrenze, die das Kamerabild nie über einen festen Faktor vergrößert.
 - **Raster nach Personenzahl:** Raster, Raster mit Mittelbild (wie „7 Kacheln mit Übersicht"), Sprecher groß mit Leiste, Übersicht mit Leiste. Eigene Layouts zeichnet man auf einem 12 × 12-Raster. Man legt sie je Personenzahl oder fest pro Szene fest, z. B. *Gruppe groß + Nahaufnahme als Bild im Bild*.
 - **Raum:** Raumgrenze, Ausschlusszonen (Glaswand, Tür, Bildschirme) und eine Mindestkopfgröße.
