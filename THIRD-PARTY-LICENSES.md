@@ -2,7 +2,10 @@
 
 | Component | Licence | Use |
 |---|---|---|
-| MediaPipe Tasks Vision and models (EfficientDet-Lite0, BlazeFace, Face Landmarker) | Apache-2.0 | person, head and lip detection |
+| RTMO-s (OpenMMLab MMPose) | Apache-2.0 | people and body keypoints |
+| OSNet-AIN x0.25 (Torchreid, weights via LibreReID) | MIT | re-identification |
+| ONNX Runtime Web | MIT | runs RTMO and OSNet |
+| MediaPipe Tasks Vision and Face Landmarker | Apache-2.0 | lip detection |
 | ffmpeg (ffmpeg-static build) | GPL-3.0 | streams, v4l2 output, network inputs. Source: https://ffmpeg.org, build: https://github.com/eugeneware/ffmpeg-static |
 | atem-connection | MIT | ATEM SuperSource control |
 | ws | MIT | control and frame sockets |

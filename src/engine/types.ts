@@ -7,6 +7,8 @@ export interface Detection {
   body: Rect; head: Rect | null; score: number;
   /** unsure (low score, faceless furniture-like box): may continue a tracked person, never starts one */
   low?: boolean;
+  /** appearance vector (OSNet, L2-normalised) for recognising the person later */
+  emb?: Float32Array;
 }
 
 /** A tracked person with a stable id. */
@@ -21,6 +23,8 @@ export interface Person {
   hits: number;
   /** head centre speed in px/ms, for the prediction while the person is not detected */
   vx?: number; vy?: number;
+  /** running mean of the appearance vectors */
+  emb?: Float32Array;
   /** time of the last prediction step while not detected */
   predicted?: number;
   /** 0…1, how sure we are that this person is speaking right now */
