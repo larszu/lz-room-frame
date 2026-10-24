@@ -60,8 +60,8 @@ export function Framing() {
           }[f.mode]}>
             <Seg label="Modus" value={f.mode} onChange={(m: Mode) => e.setFraming({ mode: m })} options={(Object.keys(MODE_LABEL) as Mode[]).map((m) => ({ value: m, label: MODE_LABEL[m] }))} />
           </Field>
-          <Field label="Bildgröße pro Person">
-            <Seg label="Bildgröße" value={f.shot} onChange={(v: Shot) => e.setFraming({ shot: v })} options={(Object.keys(SHOT_LABEL) as Shot[]).map((k) => ({ value: k, label: SHOT_LABEL[k] }))} />
+          <Field label="Einstellungsgröße pro Person">
+            <Seg label="Einstellungsgröße" value={f.shot} onChange={(v: Shot) => e.setFraming({ shot: v })} options={(Object.keys(SHOT_LABEL) as Shot[]).map((k) => ({ value: k, label: SHOT_LABEL[k] }))} />
           </Field>
           {f.mode === 'people' && (
             <Field label="Raster" hint="Ergibt sich aus der Personenzahl. Eigene Raster unter Layouts.">
