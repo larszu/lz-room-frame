@@ -152,7 +152,7 @@ int wmain(int argc, wchar_t** argv) {
     scaleInto(mem->bgra, buf.data(), w, h);
     mem->width = LZ_VCAM_W; mem->height = LZ_VCAM_H; mem->magic = LZ_VCAM_MAGIC;
     mem->stamp = (LONGLONG)GetTickCount64();
-    InterlockedIncrement(&mem->seq);
+    if (InterlockedIncrement(&mem->seq) % 60 == 1) fprintf(stderr, "frames written: %ld\n", mem->seq);
   }
   if (mem) UnmapViewOfFile(mem);
   if (map) CloseHandle(map);

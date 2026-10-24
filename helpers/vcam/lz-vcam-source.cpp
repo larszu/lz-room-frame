@@ -61,7 +61,8 @@ public:
   }
   ~Picture() { if (mem_) UnmapViewOfFile(mem_); if (map_) CloseHandle(map_); }
   /** BGRA source picture or null when no feeder sent a frame in the last 2 s. */
-  const BYTE* frame() const {
+  const BYTE* frame() {
+    if (mem_ && ++calls_ % 60 == 1) { char m[160]; sprintf_s(m, "frame magic %08x age %lld seq %ld", mem_->magic, (long long)(GetTickCount64() - (ULONGLONG)mem_->stamp), mem_->seq); Log(m, 0); }
     if (!mem_ || mem_->magic != LZ_VCAM_MAGIC) return nullptr;
     if (GetTickCount64() - (ULONGLONG)mem_->stamp > 2000) return nullptr;
     return mem_->bgra;
@@ -69,6 +70,7 @@ public:
 private:
   HANDLE map_ = nullptr;
   LzVcamShared* mem_ = nullptr;
+  unsigned calls_ = 0;
 };
 
 // ---------------------------------------------------------------- pixel conversion
