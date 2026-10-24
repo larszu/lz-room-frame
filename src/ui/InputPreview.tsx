@@ -17,7 +17,7 @@ export function InputPreview({ draw, onRect, outlines = true }: { draw?: DrawMod
       raf = requestAnimationFrame(paint);
       const c = ref.current; if (!c) return;
       const el = engine.sourceElement, { width: W, height: H } = engine.source;
-      const cw = c.clientWidth * devicePixelRatio;
+      const cw = Math.round(c.clientWidth * devicePixelRatio); // a fraction never equals c.width: resizing clears the canvas
       const ch = W && H ? Math.round(cw * (H / W)) : Math.round(cw * 9 / 16);
       if (c.width !== cw || c.height !== ch) { c.width = cw; c.height = ch; }
       const g = c.getContext('2d')!;
@@ -82,7 +82,10 @@ export function InputPreview({ draw, onRect, outlines = true }: { draw?: DrawMod
     return { x: Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), y: Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)) };
   };
 
+  // the wrapper's width must not depend on the canvas: its pixel size would widen the grid
+  // column, which resizes the canvas again (flicker loop)
   return (
+    <div style={{ containerType: 'inline-size', minInlineSize: 0 }}>
     <canvas
       ref={ref}
       style={{ inlineSize: '100%', display: 'block', borderRadius: 'var(--radius-m)', cursor: draw ? 'crosshair' : 'default', touchAction: draw ? 'none' : 'auto' }}
@@ -96,6 +99,7 @@ export function InputPreview({ draw, onRect, outlines = true }: { draw?: DrawMod
         if (r.w > 0.02 && r.h > 0.02) onRect(r);
       }}
     />
+    </div>
   );
 }
 
