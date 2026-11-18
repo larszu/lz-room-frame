@@ -12,13 +12,12 @@ function helperPath(name) {
   return path.join(base, exe);
 }
 
+/** ffmpeg (GPLv3 build, scripts/ffmpeg-builds.json): <resources>/ffmpeg in the app, vendor/ffmpeg/<os>-<arch> in development, else from PATH. */
 function ffmpegPath() {
-  try {
-    let p = require('ffmpeg-static');
-    if (p && app.isPackaged) p = p.replace('app.asar', 'app.asar.unpacked');
-    if (p && existsSync(p)) return p;
-  } catch { /* not installed */ }
-  return 'ffmpeg';
+  const exe = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
+  const dir = app.isPackaged ? path.join(process.resourcesPath, 'ffmpeg') : path.join(__dirname, '..', 'vendor', 'ffmpeg', `${process.platform}-${process.arch}`);
+  const p = path.join(dir, exe);
+  return existsSync(p) ? p : 'ffmpeg';
 }
 
 function hasFfmpeg() {

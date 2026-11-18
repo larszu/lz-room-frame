@@ -1,14 +1,15 @@
-import { Monitor, Moon, SlidersHorizontal, Sun, SunMoon, Wrench } from 'lucide-react';
+import { Info, Monitor, Moon, SlidersHorizontal, Sun, SunMoon, Wrench } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import signetNavy from '../brand/lzm_signet_navy_1c.svg?raw';
 import { desktop } from '../desktop';
 import { engine } from '../engine/engine';
 import { Seg } from './controls';
+import { About } from './About';
 import { Live } from './Live';
 import { Pro } from './Pro';
 import { Setup } from './Setup';
 
-type View = 'live' | 'setup' | 'pro';
+type View = 'live' | 'setup' | 'pro' | 'about';
 type Theme = 'auto' | 'light' | 'dark';
 
 const NAV: { id: View; label: string; icon: typeof Monitor }[] = [
@@ -59,6 +60,7 @@ export function App() {
           { value: 'light', label: <Sun size={16} />, title: 'Hell' },
           { value: 'dark', label: <Moon size={16} />, title: 'Dunkel' },
         ]} />
+        <button className="btn ghost icon" aria-pressed={view === 'about'} title="Info und Lizenzen" aria-label="Info und Lizenzen" onClick={() => setView(view === 'about' ? 'live' : 'about')}><Info size={18} /></button>
       </header>
       <nav className="nav" aria-label="Bereiche">
         {NAV.map((n) => (
@@ -71,6 +73,7 @@ export function App() {
         {view === 'live' && <Live go={go} />}
         {view === 'setup' && <Setup go={go} />}
         {view === 'pro' && <Pro />}
+        {view === 'about' && <About />}
       </main>
     </div>
   );
