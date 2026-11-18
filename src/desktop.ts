@@ -32,7 +32,7 @@ export interface Desktop {
   setControl(c: { http: number; tcp: number; enabled: boolean }): Promise<{ ok: boolean; error?: string }>;
   setAutostart(on: boolean, hidden: boolean): Promise<void>;
   openExternal(url: string): void;
-  showFolder(what: 'qsys' | 'crestron' | 'docs'): void;
+  showFolder(what: 'qsys' | 'crestron' | 'docs' | 'legal'): void;
 }
 
 export const desktop: Desktop | undefined = (window as unknown as { lzrf?: Desktop }).lzrf;

@@ -86,6 +86,6 @@ Lars Zumpe Medienproduktion · [zumpelars.de](https://zumpelars.de) · bugs and 
 
 ## License
 
-Proprietary, free to use: the released builds may be used free of charge, also commercially; the source code is public but not open source – see [LICENSE](LICENSE). Third-party components: [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md).
+Proprietary, free to use: the released builds may be used free of charge, also commercially; the source code is public but not open source – see [LICENSE](LICENSE). Third-party components keep their own licences: [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md); the app shows them under Info. The bundled FFmpeg is GPL-3.0; its source and build script are attached to every release.
 
 NDI® is a registered trademark of Vizrt NDI AB. ATEM is a trademark of Blackmagic Design.

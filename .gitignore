@@ -8,3 +8,4 @@ public/models/*.task
 .DS_Store
 public/ort/
 public/models/rtmo-*.onnx
+vendor/

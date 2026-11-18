@@ -102,6 +102,12 @@ ipcMain.handle('lzrf:autostart', (_e, on, hidden) => {
 });
 ipcMain.on('lzrf:open-external', (_e, url) => { if (/^https?:\/\//.test(url)) shell.openExternal(url); });
 ipcMain.on('lzrf:show-folder', (_e, what) => {
+  if (what === 'legal') {
+    // licence, third-party notices, ffmpeg licences and source offer (scripts/notices.mjs)
+    const legal = app.isPackaged ? path.join(process.resourcesPath, 'legal') : path.join(__dirname, '..', 'vendor', 'legal');
+    shell.openPath(legal);
+    return;
+  }
   const base = app.isPackaged ? path.join(process.resourcesPath, 'integrations') : path.join(__dirname, '..', 'docs', 'integrations');
   shell.openPath(what === 'docs' ? base : path.join(base, what));
 });

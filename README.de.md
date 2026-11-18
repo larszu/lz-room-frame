@@ -74,6 +74,6 @@ Geprüft unter macOS (Apple Silicon) mit einer Videodatei:
 
 ## Lizenz
 
-Proprietär, kostenlos nutzbar: Die veröffentlichten Builds dürfen kostenlos genutzt werden, auch geschäftlich. Der Quellcode ist öffentlich, aber nicht Open Source – siehe [LICENSE](LICENSE). Komponenten Dritter: [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md).
+Proprietär, kostenlos nutzbar: Die veröffentlichten Builds dürfen kostenlos genutzt werden, auch geschäftlich. Der Quellcode ist öffentlich, aber nicht Open Source – siehe [LICENSE](LICENSE). Komponenten Dritter behalten ihre eigenen Lizenzen: [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md); die App zeigt sie unter Info. Das mitgelieferte FFmpeg steht unter GPL-3.0; Quelltext und Build-Skript hängen an jedem Release.
 
 NDI® ist eine eingetragene Marke der Vizrt NDI AB. ATEM ist eine Marke von Blackmagic Design.

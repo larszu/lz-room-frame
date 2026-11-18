@@ -29,3 +29,16 @@ jobs:
       - run: npm run ${{ matrix.dist }} -- --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # GPLv3 section 6: the exact ffmpeg sources and build script next to the installers
+  sources:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - run: node scripts/ffmpeg-fetch.mjs --source
+      - run: gh release upload "$GITHUB_REF_NAME" vendor/ffmpeg/sources/* --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
